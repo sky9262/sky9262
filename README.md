@@ -1,6 +1,5 @@
-### Hi there <𝚌𝚘𝚍𝚎𝚛𝚜/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,I am 
+### Hi there <𝚌𝚘𝚍𝚎𝚛𝚜/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,I am AKASH KUMAR
 <h3 align="center">I am a student, pursuing a Bachelor degree of Science in Information Technology @ Patliputra University. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and academic challenges.</h3>
-<center><img src="https://github.com/sky9262/sky9262/raw/main/Vanilla-0.9s-262px%20(1).gif" width="430" /></center>
 
 [![Typing SVG](https://readme-typing-svg.herokuapp.com/?lines=I'm+a+Python%2FCPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=1000&height=90&color=ffdc40&center=true)](https://github.com/sky9262)
 
