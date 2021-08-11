@@ -1,6 +1,7 @@
-<h1 align="center">Hi 👋, I'm Akash Kumar</h1>
+### Hi there <𝚌𝚘𝚍𝚎𝚛𝚜/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,I am 
 <h3 align="center">I am a student, pursuing a Bachelor degree of Science in Information Technology @ Patliputra University. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and academic challenges.</h3>
 
+[![Typing SVG](https://readme-typing-svg.herokuapp.com/?lines=I'm+a+Python%2FCPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=1000&height=90&color=ffdc40&center=true)](https://github.com/sky9262)
 
 <!---<a href='https://archiveprogram.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/acbadge.gif' width='40' height='40'></a> ---> 
 <a href='https://docs.github.com/en/developers'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/devbadge.gif' width='40' height='40'></a> <a href='https://github.com/pricing'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/pro.gif' width='40' height='40'></a> <a href='https://stars.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/starbadge.gif' width='35' height='35'></a> <a href='https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/sponsorbadge.gif' width='35' height='35'></a> 
