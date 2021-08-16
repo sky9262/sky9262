@@ -2,16 +2,16 @@
 <a align="center"> <img src="https://github.com/sky9262/sky9262/blob/main/ezgif.com-gif-maker%20(3).gif" /></a>
 <h3 align="center">I am a student, pursuing a Bachelor degree of Science in Information Technology @ Patliputra University. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and academic challenges.</h3>
 
-[![Typing SVG](https://readme-typing-svg.herokuapp.com/?lines=I'm+a+Python%2FCPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=1000&height=90&color=ffdc40&center=true)](https://github.com/sky9262)
+[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=50&lines=I'm+a+Python%2FCPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=1000&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
 
 
-- 🌱 I’m currently learning [![Node Js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://www.nodejs.org/)
+- 🌱 I’m currently learning [![React Js](https://img.shields.io/badge/react-61DAFB?&style=for-the-badge&logo=react&logoColor=121212)](https://reactjs.org/)
 
 <!-- 📝 I regulary write articles on [![Blog](https://img.shields.io/badge/-reishin.me-FF4088?style=for-the-badge&logo=Hugo&logoColor=ffffff)](https://reishin.me)-->
 
 - 📫 How to reach me [![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:akash2002.pat@gmail.com) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/sky9262/) [![Twitter](https://img.shields.io/badge/twitter-1DA1F2.svg?style=for-the-badge&logo=twitter&logoColor=ffffff)](https://twitter.com/akash_sky_sri) [![KakaoTalk](https://img.shields.io/badge/KakaoTalk-FFFC00?style=for-the-badge&logo=KakaoTalk&logoColor=black)](https://twitter.com/akash_sky_sri)
 
-
+<br /> <br /> 
 
 <!---<a href='https://archiveprogram.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/acbadge.gif' width='40' height='40'></a> ---> 
 <img align='right' src="https://media.giphy.com/media/M9gbBd9nbDrOTu1Mqx/giphy.gif" width="230">
@@ -27,7 +27,8 @@
 [![VS Code](https://img.shields.io/badge/IDE-VSCode-%23007ACC?style=flat-square&logo=Visual-studio-code)](https://code.visualstudio.com/)
 
 
-<p align="left"> <img src="https://komarev.com/ghpvc/?username=sky9262&label=Profile%20views&color=0e75b6&style=flat" alt="sky9262" /> </p>
+---
+
 
 <p align="left"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=sky9262" alt="sky9262" /></a> </p>
 
@@ -81,4 +82,5 @@
 
 
 ![Made with love in India](https://madewithlove.now.sh/in?heart=true&template=for-the-badge)
-![VisitorCount](https://profile-counter.glitch.me/sky9262/count.svg)
+<!--![VisitorCount](https://profile-counter.glitch.me/sky9262/count.svg)-->
+<p align="left"> <img src="https://komarev.com/ghpvc/?username=sky9262&label=Profile%20views&color=0e75b6&style=flat" alt="sky9262" /> </p>
