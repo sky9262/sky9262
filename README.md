@@ -4,9 +4,27 @@
 
 [![Typing SVG](https://readme-typing-svg.herokuapp.com/?lines=I'm+a+Python%2FCPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=1000&height=90&color=ffdc40&center=true)](https://github.com/sky9262)
 
+
+- 🌱 I’m currently learning [![Node Js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://www.nodejs.org/)
+
+<!-- 📝 I regulary write articles on [![Blog](https://img.shields.io/badge/-reishin.me-FF4088?style=for-the-badge&logo=Hugo&logoColor=ffffff)](https://reishin.me)-->
+
+- 📫 How to reach me [![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:akash2002.pat@gmail.com) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/sky9262/) [![Twitter](https://img.shields.io/badge/twitter-1DA1F2.svg?style=for-the-badge&logo=twitter&logoColor=ffffff)](https://twitter.com/akash_sky_sri) [![KakaoTalk](https://img.shields.io/badge/KakaoTalk-FFFC00?style=for-the-badge&logo=KakaoTalk&logoColor=black)](https://twitter.com/akash_sky_sri)
+
+
+
 <!---<a href='https://archiveprogram.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/acbadge.gif' width='40' height='40'></a> ---> 
 <img align='right' src="https://media.giphy.com/media/M9gbBd9nbDrOTu1Mqx/giphy.gif" width="230">
 <a href='https://docs.github.com/en/developers'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/devbadge.gif' width='40' height='40'></a> <a href='https://github.com/pricing'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/pro.gif' width='40' height='40'></a> <a href='https://stars.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/starbadge.gif' width='35' height='35'></a> <a href='https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/sponsorbadge.gif' width='35' height='35'></a> 
+
+
+## Operating System & Tools
+
+[![WinOS](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/en-in/windows/)
+[![Kali Linux](https://img.shields.io/badge/Kali_Linux-557C94?style=for-the-badge&logo=kali-linux&logoColor=white)](https://www.kali.org/)
+
+[![Pycharm](https://img.shields.io/badge/IDE-PyCharm-yellow?style=flat-square&logo=JetBrains)](https://www.jetbrains.com/pycharm/)
+[![VS Code](https://img.shields.io/badge/IDE-VSCode-%23007ACC?style=flat-square&logo=Visual-studio-code)](https://code.visualstudio.com/)
 
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=sky9262&label=Profile%20views&color=0e75b6&style=flat" alt="sky9262" /> </p>
