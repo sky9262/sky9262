@@ -1,8 +1,11 @@
-### Hi there <𝚌𝚘𝚍𝚎𝚛𝚜/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,I am
+### Hi there <𝚌𝚘𝚍𝚎𝚛𝚜/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,I am 
 <a align="center"> <img src="https://github.com/sky9262/sky9262/blob/main/ezgif.com-gif-maker%20(3).gif" /></a>
 <h3 align="center">I am a student, pursuing a Bachelor degree of Science in Information Technology @ Patliputra University. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and academic challenges.</h3>
 
-[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=50&lines=I'm+a+Python%2FCPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=1000&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
+
+<p><img align='left' src="https://octodex.github.com/images/hula_loop_octodex03.gif" width="130"></p>
+
+[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+Python+%26+CPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
 
 
 - 🌱 I’m currently learning [![React Js](https://img.shields.io/badge/react-61DAFB?&style=for-the-badge&logo=react&logoColor=121212)](https://reactjs.org/)
@@ -11,10 +14,11 @@
 
 - 📫 How to reach me [![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:akash2002.pat@gmail.com) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/sky9262/) [![Twitter](https://img.shields.io/badge/twitter-1DA1F2.svg?style=for-the-badge&logo=twitter&logoColor=ffffff)](https://twitter.com/akash_sky_sri) [![KakaoTalk](https://img.shields.io/badge/KakaoTalk-FFFC00?style=for-the-badge&logo=KakaoTalk&logoColor=black)]()
 
-<img src="https://media.giphy.com/media/LnQjpWaON8nhr21vNW/giphy.gif" width="60"> <em>I love connecting with different people so if you want to say <b>hi</b>, I'll be happy to meet you more! <b>😊</b></em>
+<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60"> <em>I love connecting with different people so if you want to say <b>hi</b>, I'll be happy to meet you more! <b>😊</b></em>
 
 <!---<a href='https://archiveprogram.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/acbadge.gif' width='40' height='40'></a> ---> 
 <img align='right' src="https://media.giphy.com/media/M9gbBd9nbDrOTu1Mqx/giphy.gif" width="230">
+
 <a href='https://docs.github.com/en/developers'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/devbadge.gif' width='40' height='40'></a> <a href='https://github.com/pricing'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/pro.gif' width='40' height='40'></a> <a href='https://stars.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/starbadge.gif' width='35' height='35'></a> <a href='https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/sponsorbadge.gif' width='35' height='35'></a> 
 
 ---
@@ -72,7 +76,7 @@
 
 ---
 <h3 align="center">😂 Joke 😂</h3>
-<p align="center"> <img src="https://readme-jokes.vercel.app/api" alt="Joke" /> </p>
+<p align="center">[![VS Code](https://readme-jokes.vercel.app/api)](https://readme-jokes.vercel.app/api) </p>
 
 ---
 ![Made with love in India](https://madewithlove.now.sh/in?heart=true&template=for-the-badge)
