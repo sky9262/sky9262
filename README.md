@@ -38,6 +38,13 @@
 
 <p align="left"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=sky9262&row=2&column=3&theme=monokai&column=8&no-frame=true&no-bg=true" alt="sky9262" /></a> </p>
 
+[![Solved.ac - sky9262](http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262)](https://solved.ac/sky9262)
+<br /> 
+[![Solved.ac - sky9262](http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262)](https://solved.ac/sky9262)
+
+
+
+
 
 <p align="left"> <a href="https://twitter.com/akash_sky_sri" target="blank"><img src="https://img.shields.io/twitter/follow/akash_sky_sri?logo=twitter&style=for-the-badge" alt="akash_sky_sri" /></a> </p>
 
