@@ -8,7 +8,7 @@
 [![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+Python+%26+CPP+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
 
 
-- 🌱 I’m currently learning [![React Js](https://img.shields.io/badge/react-61DAFB?&style=for-the-badge&logo=react&logoColor=121212)](https://reactjs.org/)
+- 🌱 I’m currently learning [![React Js](https://img.shields.io/badge/react-61DAFB?&style=for-the-badge&logo=react&logoColor=121212)](https://reactjs.org/) [![Cryptography](https://img.shields.io/badge/Cryptography-000000?style=for-the-badge&logo=Let%E2%80%99s-Encrypt&logoColor=white)](https://en.wikipedia.org/wiki/Cryptography)
 
 <!-- 📝 I regulary write articles on [![Blog](https://img.shields.io/badge/-reishin.me-FF4088?style=for-the-badge&logo=Hugo&logoColor=ffffff)](https://reishin.me)-->
 
