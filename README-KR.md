@@ -1,5 +1,4 @@
-### 안녕하세요 <코더/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,나는 
-<a align="center"> <img src="https://github.com/sky9262/sky9262/blob/main/ezgif.com-gif-maker%20(3).gif" /></a>
+### 안녕하세요 <코더/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,나는 <img align="right" src="https://img.shields.io/badge/English-ff6684?style=for-the-badge&logo=Toggl&logoColor=white">
 <h3 align="center">저는 Patliputra University 에서 정보 기술 과학 학사 학위를 추구하는 학생입니다. 나는 항상 새로운 경험을 하고, 새로운 사람들을 만나고, 새로운 것을 배울 준비가 되어 있습니다. 저는 모험과 학문적 도전을 찾는 유형의 개인입니다.</h3>
 
 
