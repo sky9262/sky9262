@@ -83,7 +83,7 @@
 
 [![GitHub Streak](https://github-readme-streak-stats.herokuapp.com?user=sky9262&theme=tokyonight&hide_border=true)](https://github.com/sky9262)
 ---
-<h3 align="center">😂 Joke 😂</h3>
+<h3 align="center">😂 농담 😂</h3>
 <p align="center"><img src="https://readme-jokes.vercel.app/api"/> </p>
 
 ---
