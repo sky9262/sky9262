@@ -56,13 +56,14 @@
 <br>
 <div width="100%" align="center">
   
+  
+  
+  <a align="center" href="https://github.com/sky9262/gce-korea" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=gce-korea&theme=cobalt&border_color=61dafb&border_radius=10"></a>  
+  
   <a align="center" href="https://github.com/sky9262/Python-Weather-API" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=Python-Weather-API&theme=cobalt&border_color=61dafb&border_radius=10"></a>
  
   <a align="center" href="https://github.com/sky9262/Saved_Wifi_Password" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=Saved_Wifi_Password&theme=cobalt&border_color=61dafb&border_radius=10"></a>
-  
-  <a align="center" href="https://github.com/sky9262/Arithmetic_Arranger" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=Arithmetic_Arranger&theme=cobalt&border_color=61dafb&border_radius=10"></a>  
 
-  
   <a align="center" href="https://github.com/sky9262/SKY_BANK" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=SKY_BANK&theme=cobalt&border_color=61dafb&border_radius=10"></a>  
   
 </div>
