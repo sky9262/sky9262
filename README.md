@@ -1,4 +1,4 @@
-<a href="https://github.com/sky9262/sky9262/blob/main/README-KR.md"><img align="right" src="https://img.shields.io/badge/%ED%95%9C%EA%B5%AD%EC%9D%B8-ff6684?style=for-the-badge&logo=Toggl&logoColor=white"></a><br />
+<a href="https://github.com/sky9262/sky9262/blob/main/README-JP.md"><img align="right" src="https://img.shields.io/badge/%E6%97%A5%E6%9C%AC%E8%AA%9E-ff6684?style=for-the-badge&logo=Toggl&logoColor=white"></a><br />
 ### Hi there <𝚌𝚘𝚍𝚎𝚛𝚜/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,I am 
 <a align="center"> <img src="https://github.com/sky9262/sky9262/blob/main/ezgif.com-gif-maker%20(3).gif" /></a>
 <h3 align="center">I am a recent graduate student with Information Technology major @ Patliputra University. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and academic challenges.</h3>
