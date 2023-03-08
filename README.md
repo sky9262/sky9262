@@ -71,9 +71,15 @@
 
 <br /> <br /> <br /> <br /> <br />
 
-![](https://activity-graph.herokuapp.com/graph?username=sky9262&theme=react-dark)
+[![github activity graph](https://github-readme-activity-graph.cyclic.app/graph?username=sky9262&bg_color=000000&color=849e4c&line=0aff54&point=1e6c0e&area=true&hide_border=true)](https://github.com/ashutosh00710/github-readme-activity-graph)
 
 <br /> <br /> <br /> <br /> <br />
+
+
+
+
+
+
 
 ---
 
