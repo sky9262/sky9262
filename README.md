@@ -40,6 +40,8 @@
 
 <p align="left"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=sky9262&row=2&column=3&theme=monokai&column=8&no-frame=true&no-bg=true" alt="sky9262" /></a> </p>
 
+[![TryHackMe - sky9262](https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0)](https://tryhackme.com/p/sky9262)
+
 [![Solved.ac - sky9262](http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262)](https://solved.ac/sky9262)
 <br />
 [![Solved.ac - sky9262](http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262)](https://solved.ac/sky9262)
