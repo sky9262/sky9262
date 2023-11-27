@@ -8,7 +8,7 @@
 
 <p><img align='left' src="https://octodex.github.com/images/hula_loop_octodex03.gif" width="130"></p>
 
-[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+Python+%26+GoLang+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
+[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+Python+%26+Ruby+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
 
 - 🌱 I’m currently learning [![Docker](https://img.shields.io/badge/Docker-29beb0?&style=for-the-badge&logo=go&logoColor=ffffff)](https://www.docker.com/) [![AWS Cloud](https://img.shields.io/badge/AWS%20Cloud-105290?style=for-the-badge&logo=amazonaws&logoColor=white)](https://en.wikipedia.org/wiki/Cryptography)
 
