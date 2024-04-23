@@ -4,13 +4,13 @@
 
 <a align="center"> <img src="https://github.com/sky9262/sky9262/blob/main/ezgif.com-gif-maker%20(3).gif" /></a>
 
-<h3 align="center">I am a recent graduate student with Information Technology major @ Patliputra University. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and academic challenges.</h3>
+<h3 align="center">I am a Trilingual graduate student with Information Technology major. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and challenges.</h3>
 
 <p><img align='left' src="https://octodex.github.com/images/hula_loop_octodex03.gif" width="130"></p>
 
 [![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+Python+%26+Ruby+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
 
-- 🌱 I’m currently learning [![Docker](https://img.shields.io/badge/Docker-29beb0?&style=for-the-badge&logo=go&logoColor=ffffff)](https://www.docker.com/) [![AWS Cloud](https://img.shields.io/badge/AWS%20Cloud-105290?style=for-the-badge&logo=amazonaws&logoColor=white)](https://en.wikipedia.org/wiki/Cryptography)
+- 🌱 I’m currently learning [![ML](https://img.shields.io/badge/Machine%20Learning-29beb0?&style=for-the-badge&logo=circuitverse&logoColor=ffffff)]([https://www.docker.com/](https://en.wikipedia.org/wiki/Machine_learning)) [![AWS Cloud](https://img.shields.io/badge/AWS%20Cloud-105290?style=for-the-badge&logo=amazonaws&logoColor=white)](https://en.wikipedia.org/wiki/Cryptography)
 
 <!-- 📝 I regulary write articles on [![Blog](https://img.shields.io/badge/-reishin.me-FF4088?style=for-the-badge&logo=Hugo&logoColor=ffffff)](https://reishin.me)-->
 
