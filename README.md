@@ -4,17 +4,17 @@
 
 <a align="center"> <img src="https://github.com/sky9262/sky9262/blob/main/ezgif.com-gif-maker%20(3).gif" /></a>
 
-<h3 align="center">I am a Trilingual graduate student with Information Technology major. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and challenges.</h3>
+<h3 align="center">I am a Trilingual AI Engineer working in Japan. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and challenges.</h3>
 
 <p><img align='left' src="https://octodex.github.com/images/hula_loop_octodex03.gif" width="130"></p>
 
-[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+Python+%26+Ruby+developer;Interested+in+Cyber+Security;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
+[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+AI+%26+Engineer;Interested+in+Cyber+Security+too;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
 
 - 🌱 I’m currently learning [![ML](https://img.shields.io/badge/Machine%20Learning-29beb0?&style=for-the-badge&logo=circuitverse&logoColor=ffffff)]([https://www.docker.com/](https://en.wikipedia.org/wiki/Machine_learning)) [![AWS Cloud](https://img.shields.io/badge/AWS%20Cloud-105290?style=for-the-badge&logo=amazonaws&logoColor=white)](https://en.wikipedia.org/wiki/Cryptography)
 
 <!-- 📝 I regulary write articles on [![Blog](https://img.shields.io/badge/-reishin.me-FF4088?style=for-the-badge&logo=Hugo&logoColor=ffffff)](https://reishin.me)-->
 
-- 📫 How to reach me [![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:akash2002.pat@gmail.com) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/sky9262/) [![Twitter](https://img.shields.io/badge/twitter-1DA1F2.svg?style=for-the-badge&logo=twitter&logoColor=ffffff)](https://twitter.com/akash_sky_sri) [![Instagram](https://img.shields.io/badge/Instagram-FFFFFF?style=for-the-badge&logo=instagram&logoColor=bc2a8d)](http://instagram.com/sky926296)
+- 📫 How to reach me [![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:akash2002.pat@gmail.com) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/sky9262/) [![Twitter](https://img.shields.io/badge/twitter-1DA1F2.svg?style=for-the-badge&logo=twitter&logoColor=ffffff)](https://twitter.com/sky9262) [![Instagram](https://img.shields.io/badge/Instagram-FFFFFF?style=for-the-badge&logo=instagram&logoColor=bc2a8d)](http://instagram.com/sky926296)
 
 <img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60"/> <em>I love connecting with different people so if you want to say <b>hi</b>, I'll be happy to meet you more! <b>😊</b></em>
 
