@@ -33,12 +33,33 @@ def test_readme_output_urls():
         text = _read(lang)
         live = [u for u in _srcs(text) if u.startswith(OUT)]
         assert live, f"{lang}: no live images"
-        assert all("/output-test/" in u for u in live), live
+        branches = {u[len(OUT):].split("/")[0] for u in live}
+        assert len(branches) == 1, branches
+        assert branches <= {"output", "output-test"}, branches
         assert f"/{lang}/plaque-phisheye.svg" in text
         for name in ("torii-desktop", "torii-phone", "feed-desktop", "feed-phone",
                      "stat-contrib", "stat-streak", "stat-stars", "stat-followers",
                      "enso", "hours"):
             assert f"/{lang}/{name}.svg" in text, name
+
+
+@pytest.mark.parametrize("branch", ["output", "output-test"])
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_render_readme_branch(lang, branch):
+    from scripts.build.readme import render_readme
+
+    live = [u for u in _srcs(render_readme(lang, branch)) if u.startswith(OUT)]
+    assert live and all(u.startswith(f"{OUT}{branch}/{lang}/") for u in live)
+
+
+def test_build_deterministic(fonts):
+    from scripts.build.subset import subset_woff2
+    from scripts.shrine.cards.cando import render_cando
+    from conftest import SERIF_DIR
+
+    ttf = SERIF_DIR / "NotoSerifJP-Regular.ttf"
+    assert subset_woff2(ttf, "絵馬ABC") == subset_woff2(ttf, "絵馬ABC")
+    assert render_cando("jp", "phone", fonts) == render_cando("jp", "phone", fonts)
 
 
 def test_toggle_links():

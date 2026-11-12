@@ -14,6 +14,8 @@ SOURCES = {
     "serif": "NotoSerifJP-{}.ttf",
     "mono": "JetBrainsMono-{}.ttf",
 }
+# 2010-01-01 UTC in the font epoch; keeps builds byte-identical
+FIXED_TIMESTAMP = 3345148800
 WEIGHT_NAME = {400: "Regular", 700: "Bold"}
 
 
@@ -23,10 +25,11 @@ def subset_woff2(ttf: Path, text: str) -> bytes:
     opts.layout_features = ["*"]
     opts.notdef_outline = True
     opts.hinting = False
-    font = TTFont(str(ttf))
+    font = TTFont(str(ttf), recalcTimestamp=False)
     sub = Subsetter(opts)
     sub.populate(text=text)
     sub.subset(font)
+    font["head"].created = font["head"].modified = FIXED_TIMESTAMP
     font.flavor = "woff2"
     buf = BytesIO()
     font.save(buf)
