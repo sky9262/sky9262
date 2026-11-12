@@ -35,8 +35,8 @@ MOTION_CSS = """
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .cursor{animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-.sway{transform-origin:50% 0;animation:sway 5s ease-in-out infinite}
-@keyframes sway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+.sway{transform-box:fill-box;transform-origin:50% 0;animation:sway 5s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-1.4deg)}50%{transform:rotate(1.4deg)}}
 """
 
 # Gradients/filters/symbols referenced by the primitives; always emitted by document().
@@ -123,14 +123,14 @@ def rope(width: int) -> str:
     mid = width / 2
     path = f"M0,6 Q{_num(mid)},26 {width},6"
     tassels = "".join(
-        f'<path d="M{_num(x)},{_num(y)} l-4,8 l5,4 l-4,8 l5,4" fill="none" stroke="#fff4dc" stroke-width="2"/>'
+        f'<path d="M{_num(x)},{_num(y)} l-4,8 l5,4 l-4,8 l5,4" fill="none" stroke="{P['moon-a']}" stroke-width="2"/>'
         for x, y in (
             (width * f, 6 + 20 * 4 * f * (1 - f)) for f in (0.2, 0.4, 0.6, 0.8)
         )
     )
     return (
         f'<g class="rope"><path d="{path}" fill="none" stroke="#d8c08a" stroke-width="7" stroke-linecap="round"/>'
-        f'<path d="{path}" fill="none" stroke="#8a5a28" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 6"/>'
+        f'<path d="{path}" fill="none" stroke="{P['wood-grain']}" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 6"/>'
         f"{tassels}</g>"
     )
 
@@ -177,6 +177,24 @@ def font_sizes(svg: str) -> list[tuple[float, bool]]:
 
     walk(_parse(svg), None, False)
     return out
+
+
+def unsized_text(svg: str) -> int:
+    """Count non-deco <text> elements with no explicit or inherited font-size."""
+    count = 0
+
+    def walk(el: ET.Element, size: float | None, deco: bool) -> None:
+        nonlocal count
+        own = _size_of(el)
+        size = own if own is not None else size
+        deco = deco or _has_deco(el)
+        if _local(el.tag) == "text" and size is None and not deco:
+            count += 1
+        for c in el:
+            walk(c, size, deco)
+
+    walk(_parse(svg), None, False)
+    return count
 
 
 def visible_strings(svg: str) -> str:

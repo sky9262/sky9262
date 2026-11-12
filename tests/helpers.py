@@ -1,7 +1,7 @@
 import re
 import subprocess
 
-from scripts.shrine.svg import font_sizes
+from scripts.shrine.svg import font_sizes, unsized_text
 
 
 def assert_valid_svg(svg: str) -> None:
@@ -15,6 +15,7 @@ def assert_min_text(svg: str, rendered_width: int, min_px: float = 12.0) -> None
     m = re.search(r'viewBox="[\d.\-]+\s+[\d.\-]+\s+([\d.]+)\s+[\d.]+"', svg)
     assert m, "no viewBox"
     vb_w = float(m.group(1))
+    assert unsized_text(svg) == 0, "non-deco <text> without a font-size"
     for size, deco in font_sizes(svg):
         if deco:
             continue

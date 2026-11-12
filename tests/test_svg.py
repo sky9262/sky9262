@@ -66,3 +66,26 @@ def test_primitives_compose_valid():
 def test_palette_tokens():
     assert PALETTE["night-0"] == "#070a1c" and PALETTE["vermilion"] == "#e8452c"
     assert PALETTE["wood-a"] == "#d8ad72" and PALETTE["wood-b"] == "#a7743a"
+
+
+def test_assert_min_text_fails_on_unsized_text():
+    svg = f'<svg {NS} viewBox="0 0 1200 400"><text>x</text></svg>'
+    with pytest.raises(AssertionError):
+        assert_min_text(svg, 846)
+    deco = f'<svg {NS} viewBox="0 0 1200 400"><text class="deco">x</text></svg>'
+    assert_min_text(deco, 846)
+
+
+def test_visible_strings_includes_desc_aria_href():
+    svg = (
+        f'<svg {NS}><desc>D</desc><g aria-label="L"/>'
+        '<a href="https://example.com/x"><text font-size="14">t</text></a></svg>'
+    )
+    out = visible_strings(svg)
+    for want in ("D", "L", "https://example.com/x", "t"):
+        assert want in out
+
+
+def test_sway_spec():
+    assert "rotate(-1.4deg)" in MOTION_CSS and "rotate(1.4deg)" in MOTION_CSS
+    assert "transform-box:fill-box" in MOTION_CSS.split(".sway{")[1].split("}")[0]
