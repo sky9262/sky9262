@@ -89,8 +89,22 @@ def terms_in(text: str, deny: list[str]) -> list[str]:
     ]
 
 
+_STYLE = re.compile(r"<style\b[^>]*>.*?</style\s*>", re.DOTALL | re.IGNORECASE)
+_DATA_URI = re.compile(r"data:[^\"'\s)<>]*", re.IGNORECASE)
+
+
+def markup(svg: str) -> str:
+    """The raw SVG minus <style> blocks and data: URIs (ids, classes, data-*,
+    comments and attribute values stay in)."""
+    return _DATA_URI.sub(" ", _STYLE.sub(" ", svg))
+
+
 def check(svgs: dict[str, str], private_names: list[str], deny: list[str]) -> None:
-    """Raise PrivacyError (file + masked term) on the first leak found."""
+    """Raise PrivacyError (file + masked term) on the first leak found.
+
+    Pass 1 (visible text): private names and deny terms. Pass 2 (raw markup):
+    private names only; deny substrings would trip on hex colours and path data."""
+    names = [n for n in private_names if n and n.strip()]
     for fname in sorted(svgs):
         text = visible_strings(svgs[fname])
         hit = names_in(text, private_names)
@@ -99,13 +113,19 @@ def check(svgs: dict[str, str], private_names: list[str], deny: list[str]) -> No
         hit = terms_in(text, deny)
         if hit:
             raise PrivacyError(f"{fname}: deny-list term {mask(hit[0])}")
+        raw = _norm(markup(svgs[fname]))
+        hit = [n for n in names if name_pattern(n).search(raw)]
+        if hit:
+            raise PrivacyError(f"{fname}: private repo name {mask(hit[0])} in SVG markup")
 
 
 def scrub(message: str, private_names: list[str], deny: list[str]) -> str:
-    """Mask every private name / deny term inside an arbitrary message."""
-    for term in sorted({t.strip() for t in [*private_names, *deny] if t and t.strip()}, key=len, reverse=True):
-        message = re.sub(re.escape(term), mask(term), message, flags=re.IGNORECASE)
-        n = unicodedata.normalize("NFKC", term)
-        if n != term:
-            message = re.sub(re.escape(n), mask(term), message, flags=re.IGNORECASE)
+    """Mask every private name / deny term inside an arbitrary message. The message
+    is NFKC-normalised first, so full-width variants are masked too."""
+    message = unicodedata.normalize("NFKC", message)
+    terms = {t.strip() for t in [*private_names, *deny] if t and t.strip()}
+    for term in sorted(terms, key=len, reverse=True):
+        m = mask(term)
+        for form in {term, unicodedata.normalize("NFKC", term)}:
+            message = re.sub(re.escape(form), lambda _, m=m: m, message, flags=re.IGNORECASE)
     return message

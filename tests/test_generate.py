@@ -1,4 +1,5 @@
 """Task 12: privacy check and the generator CLI (python -m scripts.generate)."""
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -31,6 +32,18 @@ def _svg(body: str, style: str = "") -> str:
 
 def _tree(d: Path) -> list[str]:
     return sorted(str(p.relative_to(d)) for p in d.rglob("*"))
+
+
+PREV = ["out", "out/.shrine-output", "out/keep.txt"]
+
+
+def _prev_out(tmp_path: Path) -> Path:
+    """An earlier generator output: marker + a file we can watch."""
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / ".shrine-output").write_text("x")
+    (out / "keep.txt").write_text("old")
+    return out
 
 
 # ---------------------------------------------------------------- privacy.check
@@ -153,7 +166,7 @@ def test_main_fixture_run(tmp_path, env, capsys):
     assert code == 0
     expect = sorted(f"{lang}/{n}.svg" for lang in ("jp", "en") for n in NAMES)
     assert sorted(str(p.relative_to(out)) for p in out.rglob("*.svg")) == expect
-    assert _tree(out) == sorted(expect + ["jp", "en"])
+    assert _tree(out) == sorted(expect + ["jp", "en", ".shrine-output"])
     for rel in expect:
         svg = (out / rel).read_text(encoding="utf-8")
         assert_valid_svg(svg)
@@ -196,11 +209,10 @@ def test_main_fails_when_phisheye_live_missing(tmp_path, env, monkeypatch):
         return data
 
     monkeypatch.setattr(gen, "load_fixture", no_live)
-    (tmp_path / "out").mkdir()
-    (tmp_path / "out" / "keep.txt").write_text("old")
+    _prev_out(tmp_path)
     code, out = _run(tmp_path)
     assert code == 1
-    assert _tree(tmp_path) == ["out", "out/keep.txt"]
+    assert _tree(tmp_path) == PREV
 
 
 def test_main_writes_nothing_on_fetch_error(tmp_path, env, monkeypatch, capsys):
@@ -210,11 +222,10 @@ def test_main_writes_nothing_on_fetch_error(tmp_path, env, monkeypatch, capsys):
         raise FetchError("HTTP 502 on /graphql", 502)
 
     monkeypatch.setattr(gen, "fetch", boom)
-    (tmp_path / "out").mkdir()
-    (tmp_path / "out" / "keep.txt").write_text("old")
+    _prev_out(tmp_path)
     code, out = _run(tmp_path, fixtures=False)
     assert code == 1
-    assert _tree(tmp_path) == ["out", "out/keep.txt"]
+    assert _tree(tmp_path) == PREV
     assert (out / "keep.txt").read_text() == "old"
     cap = capsys.readouterr()
     assert "FetchError" in cap.err
@@ -239,11 +250,10 @@ def test_main_blocks_on_privacy(tmp_path, env, capsys):
     # a feed label, not part of any repo name, so filter_events cannot remove it
     term = "Released"
     env.setenv("PROFILE_DENYLIST", f"# comment\n\n{term}\n")
-    (tmp_path / "out").mkdir()
-    (tmp_path / "out" / "keep.txt").write_text("old")
+    _prev_out(tmp_path)
     code, out = _run(tmp_path)
     assert code == 1
-    assert _tree(tmp_path) == ["out", "out/keep.txt"]
+    assert _tree(tmp_path) == PREV
     cap = capsys.readouterr()
     assert "PrivacyError" in cap.err
     assert "en/feed-desktop.svg" in cap.err and "R***" in cap.err
@@ -288,6 +298,7 @@ def test_main_replaces_existing_out(tmp_path, env):
     out = tmp_path / "out"
     (out / "jp").mkdir(parents=True)
     (out / "stale.svg").write_text("x")
+    (out / ".shrine-output").write_text("x")
     (out / "jp" / "old.svg").write_text("x")
     code, _ = _run(tmp_path)
     assert code == 0
@@ -376,3 +387,198 @@ def test_module_entrypoint_missing_token(tmp_path):
     )
     assert r.returncode == 2
     assert not (tmp_path / "o").exists()
+
+
+# ---------------------------------------------------------------- fix round 1
+
+from scripts.generate.privacy import scrub  # noqa: E402
+
+SVGS = {"jp/a.svg": _svg("<text>hello</text>")}
+
+
+def test_privacy_raw_pass_catches_private_name_in_markup():
+    for body in (
+        '<g id="private-one"/>',
+        '<g class="x Private-One"/>',
+        '<g data-repo="sky9262/private-one"/>',
+        "<!-- private-one --><g/>",
+    ):
+        with pytest.raises(PrivacyError) as ei:
+            check({"a.svg": _svg(body)}, ["private-one"], [])
+        assert "private-one" not in str(ei.value).lower()
+
+
+def test_privacy_raw_pass_skips_deny_terms_and_payloads():
+    # deny substrings are not run over markup: hex colours / path data would trip them
+    check({"a.svg": _svg('<path d="M10 10" fill="#abcdef"/><g id="cafe"/>')}, [], ["abcdef", "cafe"])
+    # style blocks and data: URIs stay excluded in the raw pass too
+    svg = _svg('<image href="data:image/png;base64,AAprivate-one=="/>', style="#private-one{}")
+    check({"a.svg": svg}, ["private-one"], [])
+
+
+def test_scrub_masks_fullwidth_variants():
+    msg = scrub("failed on ＭｅｇａＣｏｒｐ and ｐｒｉｖａｔｅ－ｏｎｅ", ["private-one"], ["MegaCorp"])
+    assert "megacorp" not in msg.lower() and "ＭｅｇａＣｏｒｐ" not in msg
+    assert "private-one" not in msg and "ｐｒｉｖａｔｅ" not in msg
+    assert "M***" in msg and "p***" in msg
+
+
+def test_scrub_backslash_term():
+    assert scrub(r"bad \qterm here", [], [r"\qterm"]) == r"bad \*** here"
+
+
+def test_short_deny_terms_warn_by_count_only(tmp_path, env, capsys):
+    env.setenv("PROFILE_DENYLIST", "qz\n本社\nLongEnoughTerm")
+    code, _ = _run(tmp_path)
+    assert code == 0
+    err = capsys.readouterr().err
+    assert "warning: 2 deny-list terms shorter than 3 characters" in err
+    for t in ("qz", "本社", "LongEnoughTerm"):
+        assert t not in err
+
+
+def test_swap_interrupt_after_first_rename_restores_out(tmp_path, monkeypatch):
+    out = _prev_out(tmp_path)
+    real = os.replace
+    calls = []
+
+    def flaky(a, b):
+        calls.append((a, b))
+        real(a, b)
+        if len(calls) == 1:  # out -> backup done, then the runner is killed
+            raise KeyboardInterrupt
+
+    monkeypatch.setattr(gen.os, "replace", flaky)
+    with pytest.raises(KeyboardInterrupt):
+        gen.write_atomic(SVGS, out, [], [])
+    assert _tree(tmp_path) == PREV
+
+
+def test_swap_second_rename_failure_restores_out(tmp_path, monkeypatch):
+    out = _prev_out(tmp_path)
+    real = os.replace
+    calls = []
+
+    def flaky(a, b):
+        calls.append((a, b))
+        if len(calls) == 2:  # tmp -> out
+            raise OSError("disk full")
+        real(a, b)
+
+    monkeypatch.setattr(gen.os, "replace", flaky)
+    with pytest.raises(OSError):
+        gen.write_atomic(SVGS, out, [], [])
+    assert _tree(tmp_path) == PREV
+
+
+def _orphan(tmp_path: Path) -> Path:
+    bak = tmp_path / ".out.bak-abc123"
+    bak.mkdir()
+    (bak / ".shrine-output").write_text("x")
+    (bak / "keep.txt").write_text("old")
+    return bak
+
+
+def test_orphaned_backup_recovered_on_next_run(tmp_path, env):
+    _orphan(tmp_path)
+    code, out = _run(tmp_path)
+    assert code == 0
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["out"]
+    assert len(list(out.rglob("*.svg"))) == 22
+
+
+def test_orphaned_backup_recovered_even_when_run_fails(tmp_path, env, monkeypatch):
+    _orphan(tmp_path)
+    monkeypatch.setattr(gen, "render_enso", lambda *a, **k: 1 / 0)
+    code, _ = _run(tmp_path)
+    assert code == 1
+    assert _tree(tmp_path) == PREV
+
+
+def test_orphan_not_recovered_when_ambiguous(tmp_path):
+    _orphan(tmp_path)
+    (tmp_path / ".out.bak-zzz").mkdir()
+    gen.recover_orphan(tmp_path / "out")
+    assert not (tmp_path / "out").exists()
+
+
+def test_out_with_foreign_files_is_refused(tmp_path, env, capsys):
+    out = tmp_path / "out"
+    (out / "sub").mkdir(parents=True)
+    (out / "precious.txt").write_text("mine")
+    (out / "sub" / "x.txt").write_text("mine")
+    before = _tree(tmp_path)
+    code, _ = _run(tmp_path)
+    assert code == 1
+    assert _tree(tmp_path) == before
+    assert (out / "precious.txt").read_text() == "mine"
+    assert "--out" in capsys.readouterr().err
+
+
+def test_out_that_is_a_file_is_refused(tmp_path, env):
+    (tmp_path / "out").write_text("mine")
+    code, _ = _run(tmp_path)
+    assert code == 1
+    assert (tmp_path / "out").read_text() == "mine"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["out"]
+
+
+def test_out_dot_in_foreign_dir_is_refused(tmp_path, env, monkeypatch):
+    (tmp_path / "precious.txt").write_text("mine")
+    monkeypatch.chdir(tmp_path)
+    assert gen.main(["--out", ".", "--fixtures", str(FIX), "--now", NOW]) == 1
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["precious.txt"]
+
+
+def test_empty_out_dir_is_accepted(tmp_path, env):
+    (tmp_path / "out").mkdir()
+    code, out = _run(tmp_path)
+    assert code == 0 and (out / ".shrine-output").is_file()
+
+
+def test_interrupt_while_scrubbing_prints_type_only(tmp_path, env, monkeypatch, capsys):
+    env.setenv("PROFILE_DENYLIST", "MegaCorp")
+
+    def explode(*a, **k):
+        raise ValueError("MegaCorp leaked")
+
+    def interrupted(*a, **k):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(gen, "render_enso", explode)
+    monkeypatch.setattr(gen, "scrub", interrupted)
+    code, _ = _run(tmp_path)
+    assert code == 1
+    err = capsys.readouterr().err
+    assert "error: ValueError" in err
+    assert "MegaCorp" not in err
+
+
+def test_main_keyboard_interrupt_returns_1(tmp_path, env, monkeypatch, capsys):
+    def interrupted(*a, **k):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(gen, "render_hours", interrupted)
+    code, _ = _run(tmp_path)
+    assert code == 1
+    assert "error: KeyboardInterrupt" in capsys.readouterr().err
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_entry_never_prints_a_traceback(monkeypatch, capsys):
+    class Exited(BaseException):
+        pass
+
+    def boom(argv=None):
+        raise ValueError("MegaCorp leaked")
+
+    def fake_exit(code):
+        raise Exited(code)
+
+    monkeypatch.setattr(gen, "main", boom)
+    monkeypatch.setattr(gen.os, "_exit", fake_exit)
+    with pytest.raises(Exited) as ei:
+        gen.entry()
+    assert ei.value.args == (1,)
+    err = capsys.readouterr().err
+    assert err.strip() == "error: ValueError"
