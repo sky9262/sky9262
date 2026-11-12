@@ -122,6 +122,7 @@ _PAIR_COST = {
     ("C", "C"): 30.0,  # inside a kanji compound
     ("A", "C"): 25.0, ("A", "K"): 25.0, ("C", "A"): 25.0, ("K", "A"): 25.0,  # Silicon上, AIエージェント
 }
+_DASHES = set("–—")
 _CAP_PAIR = 15.0  # English: between two Capitalised words ("Cloud Run")
 BAD_BREAK = 25.0  # a break this costly (split compound, line-initial particle) is worse than an extra line
 # Multi-word names that never break (Japanese and English text alike).
@@ -145,6 +146,9 @@ def _word_core(tok: str, end: bool) -> str:
 def _break_cost(before: str, after: str, spaced: bool) -> float:
     """Cost of ending a line with token `before` and starting the next with `after`."""
     if spaced:
+        if after[:1] in _DASHES or before[-1:] in _DASHES:
+            # a spaced dash binds both sides: "デベロッパー – アソシエイト" stays on one line
+            return BAD_BREAK
         a, b = _word_core(before, True), _word_core(after, False)
         if (a, b) in _NO_BREAK_PAIRS:
             return _PROHIBIT

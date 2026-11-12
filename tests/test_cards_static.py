@@ -402,3 +402,193 @@ def test_wrap_prefers_extra_line_to_bad_break():
         for prev, line in zip(lines, lines[1:]):
             assert line[0] not in HIRAGANA or prev[-1] in "、。", (width, lines)
             assert not (prev.endswith("音") and line.startswith("声")), (width, lines)
+
+
+# ---------------------------------------------------------------- achievements (奉納額)
+
+from scripts.shrine.cards.achievement import EMBLEM, TEXT_W as ACH_TEXT_W, render_achievement, title_lines  # noqa: E402
+from scripts.shrine.content import ACHIEVEMENTS, CONNECT, LINKS, TOGGLE  # noqa: E402
+from scripts.shrine.icons import GLYPH  # noqa: E402
+
+ACH_CASES = [(aid, lang) for aid, _, _ in ACHIEVEMENTS for lang in ("jp", "en")]
+ACH_IDS = [f"{aid}-{lang}" for aid, lang in ACH_CASES]
+EMOJI = ("🏆", "🥇", "🎖", "🚩", "🏅", "⭐", "★", "⛩", "🔔", "✉", "🌐")
+
+
+def _ach(aid: str):
+    return next(a for a in ACHIEVEMENTS if a[0] == aid)
+
+
+@pytest.mark.parametrize("aid,lang", ACH_CASES, ids=ACH_IDS)
+def test_achievement(fonts, aid, lang):
+    _, title, detail = _ach(aid)
+    svg = render_achievement(aid, lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 360)  # 410 viewBox shown at 360 px: >= 14 units
+    assert 'viewBox="0 0 410 200"' in svg
+    seen = visible_strings(svg)
+    assert _norm(seen, lang).replace(" ", "").count(title(lang).replace(" ", "")) >= 1
+    assert detail(lang) in seen
+    assert "@font-face" in svg
+    for e in EMOJI:
+        assert e not in svg
+    assert re.search(r'class="sway"', svg)
+
+
+@pytest.mark.parametrize("aid,lang", ACH_CASES, ids=ACH_IDS)
+def test_achievement_title_fits(aid, lang):
+    """Long titles wrap (never truncate) and every line fits the text column at >= 14."""
+    _, title, _ = _ach(aid)
+    size, lines = title_lines(aid, lang)
+    assert size >= 14
+    assert 1 <= len(lines) <= 3
+    sep = "" if lang == "jp" else " "
+    assert sep.join(lines).replace(" ", "") == title(lang).replace(" ", "")
+    for line in lines:
+        assert text_width(line, size, weight=700) <= ACH_TEXT_W, line
+
+
+def test_wrap_no_line_starts_with_dash():
+    """A spaced dash stays with both neighbours whenever the phrase around it fits a line."""
+    for text, phrase in (
+        ("AWS認定 デベロッパー – アソシエイト", "デベロッパー – アソシエイト"),
+        ("AWS Certified Developer – Associate", "Developer – Associate"),
+    ):
+        for width in range(int(text_width(phrase, 20, weight=700)) + 1, 420, 4):
+            lines = wrap(text, 20, width, weight=700)
+            assert not any(l.startswith(("–", "—")) or l.endswith(("–", "—")) for l in lines), (width, lines)
+
+
+def test_achievement_emblems(fonts):
+    assert set(EMBLEM) == {aid for aid, _, _ in ACHIEVEMENTS}
+    assert EMBLEM["squid_ctf"] in ("trophy", "medal", "flag")
+    assert EMBLEM["knight_ctf"] in ("trophy", "medal", "flag")
+    assert EMBLEM["aws_dev"] == EMBLEM["agentforce"] == "seal"
+    assert EMBLEM["tryhackme"] == "thm"
+    assert EMBLEM["jlpt"] == "pass"
+    assert "合格" in visible_strings(render_achievement("jlpt", "en", fonts))
+    assert GLYPH["tryhackme"] in render_achievement("tryhackme", "jp", fonts)
+    # each tablet sways on its own phase
+    delays = {re.search(r'class="sway"[^>]*animation-delay:(-?[\d.]+)s', render_achievement(a, "jp", fonts)).group(1)
+              for a, _, _ in ACHIEVEMENTS}
+    assert len(delays) == len(ACHIEVEMENTS)
+
+
+def test_achievement_unknown_id(fonts):
+    with pytest.raises(KeyError):
+        render_achievement("nope", "jp", fonts)
+
+
+# ---------------------------------------------------------------- connect (ご縁)
+
+from scripts.shrine.cards.connect import render_connect  # noqa: E402
+
+CONNECT_VIEWBOX = {"desktop": "0 0 1200 360", "phone": "0 0 600 560"}
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_connect(fonts, lang, layout):
+    svg = render_connect(lang, layout, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, WIDTH[layout])
+    assert min(s for s, deco in font_sizes(svg) if not deco) >= MIN_UNITS[layout]
+    assert f'viewBox="{CONNECT_VIEWBOX[layout]}"' in svg
+    seen = visible_strings(svg)
+    joined = _norm(seen, lang)
+    for key in ("heading", "bell", "signoff"):
+        assert CONNECT[key](lang) in joined, key
+    for part in SECTION["connect"](lang).split(" · "):
+        assert part in seen
+    assert re.search(r'class="sway"', svg)  # the bell and its rope swing
+    assert "<a " not in svg and "<a>" not in svg  # links are the separate buttons
+    for lid, _, _ in LINKS:
+        assert GLYPH[lid] in svg, lid  # decorative row of link glyphs
+    for e in EMOJI:
+        assert e not in svg
+    assert "@font-face" in svg
+
+
+# ---------------------------------------------------------------- link buttons and language toggle
+
+from scripts.shrine.cards.button import render_button, render_toggle  # noqa: E402
+from scripts.shrine.svg import font_sizes  # noqa: E402
+
+
+@pytest.mark.parametrize("lid,label", [(l, lab) for l, lab, _ in LINKS], ids=[l for l, _, _ in LINKS])
+def test_button(fonts, lid, label):
+    svg = render_button(lid, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 220)  # shown at native width
+    assert 'viewBox="0 0 220 56"' in svg
+    assert label in visible_strings(svg)
+    assert GLYPH[lid] in svg
+    assert "@font-face" in svg
+    for e in EMOJI:
+        assert e not in svg
+    for other in ("English", "日本語"):
+        assert other not in svg  # language-neutral
+
+
+def test_buttons_cover_links(fonts):
+    svgs = {lid: render_button(lid, fonts) for lid, _, _ in LINKS}
+    assert len(svgs) == 7 and len(set(svgs.values())) == 7
+    with pytest.raises(KeyError):
+        render_button("myspace", fonts)
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_toggle(fonts, lang):
+    svg = render_toggle(lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 180)
+    assert 'viewBox="0 0 180 44"' in svg
+    assert TOGGLE(lang) in visible_strings(svg)
+    assert TOGGLE("en" if lang == "jp" else "jp") not in visible_strings(svg)
+    assert "@font-face" in svg
+
+
+def test_misc_cards_stdlib_only():
+    """The CI generator can rebuild these cards without fontTools."""
+    code = (
+        "import sys; sys.modules['fontTools'] = None\n"
+        "from scripts.shrine.fonts import RuntimeFonts\n"
+        "from scripts.shrine.cards.achievement import render_achievement\n"
+        "from scripts.shrine.cards.connect import render_connect\n"
+        "from scripts.shrine.cards.button import render_button, render_toggle\n"
+        "f = RuntimeFonts()\n"
+        "render_achievement('jlpt', 'jp', f); render_connect('en', 'phone', f)\n"
+        "render_button('gmail', f); render_toggle('jp', f)\n"
+    )
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    r = subprocess.run([sys.executable, "-c", code], cwd=root, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+
+
+def test_misc_metrics_match_fonts():
+    """Width table / one-em fallback agree with Noto Serif JP for the new cards' text."""
+    pytest.importorskip("fontTools")
+    from conftest import SERIF_DIR
+    from fontTools.ttLib import TTFont
+
+    if not (SERIF_DIR / "NotoSerifJP-Regular.ttf").exists():
+        pytest.skip("font sources absent")
+    text = "".join(t.jp + t.en + d.jp + d.en for _, t, d in ACHIEVEMENTS)
+    text += "".join(v.jp + v.en for v in CONNECT.values()) + TOGGLE.jp + TOGGLE.en
+    text += "".join(lab for _, lab, _ in LINKS) + SECTION["connect"].jp + SECTION["connect"].en + "合格"
+    for weight, name in ((400, "Regular"), (700, "Bold")):
+        f = TTFont(str(SERIF_DIR / f"NotoSerifJP-{name}.ttf"))
+        cmap, hm = f.getBestCmap(), f["hmtx"]
+        for ch in set(text):
+            assert text_width(ch, 1000, weight=weight) == pytest.approx(hm[cmap[ord(ch)]][0]), (ch, weight)

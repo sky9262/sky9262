@@ -244,6 +244,7 @@ GLYPH: dict[str, str] = {
         "M10.9 14.8l-3-3 1.2-1.2 1.8 1.8 4-4 1.2 1.2z"
     ),
 }
+LINK_BRAND = _LINK_BRAND  # (path, brand hex) per LINKS id that has a brand logo
 GLYPH["hf"] = _LINK_BRAND["huggingface"][0]
 GLYPH["huggingface"] = _LINK_BRAND["huggingface"][0]
 GLYPH["gmail"] = GLYPH["mail"]
