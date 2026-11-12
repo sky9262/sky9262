@@ -64,7 +64,9 @@ def test_scene_gif_paths():
 
 # ---------------------------------------------------------------- plaques (絵馬)
 
-from scripts.shrine.cards.plaque import INNER_W, MIN_SIZE, back_text, render_plaque  # noqa: E402
+from scripts.shrine.cards.plaque import (  # noqa: E402
+    DETAIL_W, DETAIL_X, LEFT, MIN_SIZE, PL, PR, RIGHT, detail_lines, plaque_height, render_plaque,
+)
 from scripts.shrine.content import NDA, active_plaques  # noqa: E402
 from scripts.shrine.metrics import text_width  # noqa: E402
 
@@ -76,6 +78,10 @@ def _plaque(pid: str):
     return next(p for p in active_plaques() if p.id == pid)
 
 
+def _compact(s: str) -> str:
+    return re.sub(r"\s+", "", s)
+
+
 @pytest.mark.parametrize("index,pid,lang", PLAQUE_CASES, ids=PLAQUE_IDS)
 def test_plaque_all(fonts, index, pid, lang):
     p = _plaque(pid)
@@ -84,29 +90,50 @@ def test_plaque_all(fonts, index, pid, lang):
     assert_no_external(svg)
     assert_under(svg, 500)
     assert_min_text(svg, 360)
-    assert 'viewBox="0 0 420 360"' in svg
+    assert re.search(r'viewBox="0 0 420 \d+"', svg)
     seen = visible_strings(svg)
-    assert p.title(lang) in seen and p.subtitle(lang) in seen
+    body = _compact(seen.split("\n", 1)[1])  # skip <title>; wrapped lines rejoin without spaces
+    assert _compact(p.title(lang)) in body and _compact(p.subtitle(lang)) in body
     for line in p.lines(lang).split("\n"):
-        assert line in seen
+        assert _compact(line) in body, line  # every detail line, never truncated
     for tag in p.tags:
         assert tag in seen
     assert "@font-face" in svg
     for emoji in ("🔒", "🌐", "★", "⛩"):
         assert emoji not in svg  # drawn as icon paths, never emoji glyphs
-    # prototype flip keyframes, verbatim
-    assert "@keyframes front{0%,40%{transform:scaleX(1)}45%,95%{transform:scaleX(0)}100%{transform:scaleX(1)}}" in svg
-    assert "@keyframes back{0%,45%{transform:scaleX(0)}50%,90%{transform:scaleX(1)}95%,100%{transform:scaleX(0)}}" in svg
-    assert "rotate(1.4deg)" in svg  # shared sway, not the prototype's 1.2
+
+
+@pytest.mark.parametrize("index,pid,lang", PLAQUE_CASES, ids=PLAQUE_IDS)
+def test_plaque_no_flip(fonts, index, pid, lang):
+    """Owner edit 2: everything shows at once; the board does not flip or swing."""
+    svg = render_plaque(_plaque(pid), lang, index, fonts)
+    assert "scaleX(0)" not in svg
+    assert 'class="front"' not in svg and 'class="back"' not in svg
+    assert ".front{" not in svg and ".back{" not in svg
+    assert 'class="sway"' not in svg  # the board hangs still; only the shide flutter
+
+
+def test_plaque_shared_height(fonts):
+    h = plaque_height()
+    assert 480 <= h <= 600
+    for i, p in enumerate(active_plaques()):
+        for lang in ("jp", "en"):
+            svg = render_plaque(p, lang, i, fonts)
+            assert f'viewBox="0 0 420 {h}"' in svg, (p.id, lang)
+    live = render_plaque(_plaque("phisheye"), "jp", 4, fonts, stars=12345, forks=6789)
+    assert f'viewBox="0 0 420 {h}"' in live
 
 
 def test_plaque_stagger(fonts):
     p = active_plaques()[0]
     svg = render_plaque(p, "en", 3, fonts)
-    assert svg.count("animation-delay:-4.5s") >= 2  # front and back faces
-    assert re.search(r'class="front"[^>]*animation-delay:-4.5s', svg)
-    assert re.search(r'class="back"[^>]*animation-delay:-4.5s', svg)
+    assert re.search(r'class="sheen"[^>]*animation-delay:-4.5s', svg)
+    assert re.search(r'class="spin"[^>]*animation-delay:-4.5s', svg)  # motif phase
     assert "animation-delay:-4.5s" not in render_plaque(p, "en", 0, fonts)
+
+
+def test_plaque_padding():
+    assert LEFT - PL >= 34 and PR - RIGHT >= 34
 
 
 @pytest.mark.parametrize("lang", ["jp", "en"])
@@ -138,20 +165,28 @@ def test_jp_title_primary(fonts):
     jp = visible_strings(render_plaque(p, "jp", 3, fonts))
     en = visible_strings(render_plaque(p, "en", 3, fonts))
     body_jp, body_en = jp.split("\n", 1)[1], en.split("\n", 1)[1]  # skip <title>
-    # the long EN title may wrap onto two lines on the front, so compare its first words
-    assert body_jp.index("ドローン編隊自動生成エンジン") < body_jp.index("Drone Light-Show")
-    assert body_en.index("Drone Light-Show") < body_en.index("ドローン編隊自動生成エンジン")
+    # titles may wrap, so compare their first words
+    assert body_jp.index("ドローン") < body_jp.index("Drone")
+    assert body_en.index("Drone") < body_en.index("ドローン")
 
 
 @pytest.mark.parametrize("index,pid,lang", PLAQUE_CASES, ids=PLAQUE_IDS)
-def test_back_lines_fit(index, pid, lang):
-    """Every back line fits the plaque's inner width at >= 14 units, untruncated."""
+def test_detail_lines_fit(index, pid, lang):
+    """Every detail line is wrapped to the padded text width at >= 14 units, untruncated."""
     p = _plaque(pid)
-    size, lines = back_text(p, lang)
+    size, items = detail_lines(p, lang)
     assert size >= MIN_SIZE == 14
-    assert lines == p.lines(lang).split("\n")
-    for line in lines:
-        assert text_width(line, size) <= INNER_W, line
+    assert DETAIL_X + DETAIL_W <= RIGHT
+    originals = p.lines(lang).split("\n")
+    if lang == "jp":  # one marked item per line
+        assert len(items) == len(originals)
+        for pieces, line in zip(items, originals):
+            assert _compact("".join(pieces)) == _compact(line)
+    else:  # one paragraph, the authored lines as written
+        assert items == [originals]
+    width = DETAIL_W if lang == "jp" else RIGHT - LEFT
+    for piece in (x for item in items for x in item):
+        assert text_width(piece, size) <= width, piece
 
 
 def test_metrics_match_fonts():
