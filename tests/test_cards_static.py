@@ -238,7 +238,7 @@ def test_wrap_keeps_katakana_words():
 from scripts.shrine.cards.cando import BODY_SIZE, TEXT_W, body_lines, render_cando, title_fit  # noqa: E402
 from scripts.shrine.content import CANDO, SECTION, STACK  # noqa: E402
 
-CANDO_VIEWBOX = {"desktop": "0 0 1200 560", "phone": "0 0 600 1256"}  # phone: 3-line charms need more than the planned 1180
+CANDO_VIEWBOX = {"desktop": "0 0 1200 560", "phone": "0 0 600 1286"}  # phone: 3- and 4-line charms need more than the planned 1180
 MIN_UNITS = {"desktop": 17, "phone": 20}
 
 
@@ -350,3 +350,55 @@ def test_stack_layout(lang, layout):
         for b in tiles[i + 1:]:
             apart = a.x + a.w <= b.x or b.x + b.w <= a.x or a.y + a.h <= b.y or b.y + b.h <= a.y
             assert apart, (a.name, b.name)
+
+
+# ---------------------------------------------------------------- natural Japanese line breaks
+
+PARTICLES = ("は", "が", "を", "に", "で", "と", "の", "も", "へ", "や", "から", "まで", "より")
+SMALL_KANA = set("ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶー")
+HIRAGANA = {chr(c) for c in range(0x3041, 0x3097)}
+
+
+@pytest.mark.parametrize("layout", ["desktop", "phone"])
+def test_cando_jp_lines_start_naturally(layout):
+    """No wrapped JP line starts with a particle, small kana or a hiragana continuation."""
+    for lines in body_lines("jp", layout):
+        for prev, line in zip(lines, lines[1:]):
+            assert not line.startswith(PARTICLES), (prev, line)
+            assert line[0] not in SMALL_KANA, (prev, line)
+            if prev[-1] not in "、。":
+                assert line[0] not in HIRAGANA, (prev, line)
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_cando_keeps_compounds_and_names(lang, layout):
+    lines = [l for ls in body_lines(lang, layout) for l in ls]
+    if lang == "jp":
+        assert any("テナント分離" in l for l in lines), lines
+    assert any("Cloud Armor" in l for l in lines), lines
+    assert any("Apple Silicon" in l for l in lines), lines
+
+
+@pytest.mark.parametrize("layout", ["desktop", "phone"])
+def test_cando_rag_line_not_split_before_wa(layout):
+    rag = body_lines("jp", layout)[1]
+    assert not any(l.startswith("は") for l in rag), rag
+    assert any("モデルでは" in l for l in rag), rag
+
+
+def test_wrap_no_break_names():
+    text = "Guardrails and tenant isolation behind GCP IAP and Cloud Armor, on Apple Silicon with Hugging Face."
+    for width in range(140, 420, 7):
+        joined = "\n".join(wrap(text, 17.2, width))
+        for name in ("Cloud Armor", "Apple Silicon", "Hugging Face"):
+            assert name in joined, (width, joined)
+
+
+def test_wrap_prefers_extra_line_to_bad_break():
+    """A compound or a particle split is worse than one more line."""
+    text = "LoRA・QLoRAによる追加学習。Whisperのアニメ音声モデルでは文字誤り率を44.3%から31.2%に改善。"
+    for width in range(240, 520, 6):
+        lines = wrap(text, 20, width)
+        for prev, line in zip(lines, lines[1:]):
+            assert line[0] not in HIRAGANA or prev[-1] in "、。", (width, lines)
+            assert not (prev.endswith("音") and line.startswith("声")), (width, lines)

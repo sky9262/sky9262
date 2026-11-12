@@ -41,8 +41,8 @@ SERIF = 'font-family="Shrine Serif"'
 BODY_SIZE = {"desktop": 17.2, "phone": 20}
 TITLE_SIZE = {"desktop": 23, "phone": 26}
 LINE_H = {"desktop": 26, "phone": 30}
-TILE_W = {"desktop": 368, "phone": 544}
-PAD = {"desktop": 16, "phone": 24}
+TILE_W = {"desktop": 376, "phone": 544}
+PAD = {"desktop": 14, "phone": 24}
 TEXT_W = {k: TILE_W[k] - 2 * PAD[k] for k in TILE_W}
 MED_R = {"desktop": 21, "phone": 23}  # medallion radius; it sits on the charm's top edge
 CHAMFER = 14
@@ -125,10 +125,19 @@ def title_fit(title: str, layout: Layout) -> tuple[float, float]:
     return size, round(-0.08 * size, 2)
 
 
-def tile_height(layout: Layout) -> float:
-    """One height for every charm: the longest description in either language."""
-    n = max(len(ls) for lang in ("jp", "en") for ls in body_lines(lang, layout))
+def item_lines(layout: Layout) -> list[int]:
+    """Body lines each charm is sized for: its longer language version. Desktop
+    charms share one height (the rows read as a set); phone charms each fit their own."""
+    per = [max(a, b) for a, b in zip(*(map(len, body_lines(lang, layout)) for lang in ("jp", "en")))]
+    return [max(per)] * len(per) if layout == "desktop" else per
+
+
+def _tile_h(layout: Layout, n: int) -> float:
     return _body_top(layout) + (n - 1) * LINE_H[layout] + BODY_SIZE[layout] * 0.35 + PAD[layout] - 2
+
+
+def tile_heights(layout: Layout) -> list[float]:
+    return [_tile_h(layout, n) for n in item_lines(layout)]
 
 
 def _title_y(layout: Layout) -> float:
@@ -152,7 +161,7 @@ def _shape(w: float, h: float, inset: float = 0) -> str:
     )
 
 
-def _defs(w: int, h: int, tw: float, th: float) -> str:
+def _defs(w: int, h: int, tw: float, layout: Layout) -> str:
     brocade = "".join(
         f'<linearGradient id="br-{k}" x1="0" y1="0" x2="0.35" y2="1">'
         f'<stop offset="0" stop-color="{_mix(P["night-1"], a, 0.30)}"/>'
@@ -186,9 +195,12 @@ def _defs(w: int, h: int, tw: float, th: float) -> str:
         f'<stop offset="1" stop-color="{P["night-2"]}" stop-opacity="0.85"/></linearGradient>'
         f'<linearGradient id="divider" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{P["lantern-gold"]}" stop-opacity="0"/>'
         f'<stop offset="0.5" stop-color="{P["lantern-gold"]}" stop-opacity="0.7"/><stop offset="1" stop-color="{P["lantern-gold"]}" stop-opacity="0"/></linearGradient>'
-        f'<path id="charm" d="{_shape(tw, th)}"/>'
-        f'<clipPath id="charmClip"><path d="{_shape(tw, th)}"/></clipPath>'
-        '<filter id="hang" x="-10%" y="-10%" width="120%" height="135%">'
+        + "".join(
+            f'<path id="charm{n}" d="{_shape(tw, _tile_h(layout, n))}"/>'
+            f'<clipPath id="charmClip{n}"><path d="{_shape(tw, _tile_h(layout, n))}"/></clipPath>'
+            for n in sorted(set(item_lines(layout)))
+        )
+        + '<filter id="hang" x="-10%" y="-10%" width="120%" height="135%">'
         '<feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity="0.6"/></filter>'
         '<filter id="lift" x="-10%" y="-40%" width="120%" height="180%">'
         f'<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="{P["night-0"]}" flood-opacity="0.9"/></filter>'
@@ -221,7 +233,7 @@ def _knot(x: float, y: float) -> str:
     )
 
 
-def _charm(i: int, item: tuple, lang: Lang, layout: Layout, x: float, y: float, th: float, lines: list[str]) -> str:
+def _charm(i: int, item: tuple, lang: Lang, layout: Layout, x: float, y: float, n_full: int, lines: list[str]) -> str:
     """One charm, its top-left at (x, y); the medallion is centred on its top edge."""
     key, title_t, _ = item
     tw, pad, mr = TILE_W[layout], PAD[layout], MED_R[layout]
@@ -231,8 +243,9 @@ def _charm(i: int, item: tuple, lang: Lang, layout: Layout, x: float, y: float, 
     title = title_t(lang)
     ts, tls = title_fit(title, layout)
     ty = _title_y(layout)
+    th = _tile_h(layout, n_full)
     # centre the body block in the space below the divider
-    full = (max_lines(layout) - 1) * lh
+    full = (n_full - 1) * lh
     top = _body_top(layout) + (full - (len(lines) - 1) * lh) / 2
     body = "".join(
         f'<text x="{pad}" y="{_g(top + j * lh)}" {SERIF} font-size="{_g(size)}" fill="{P["text-soft-a"]}">{esc(t)}</text>'
@@ -246,12 +259,12 @@ def _charm(i: int, item: tuple, lang: Lang, layout: Layout, x: float, y: float, 
     return (
         f'<g transform="translate({_g(x)},{_g(y)})">'
         # the charm and its embroidery
-        f'<use href="#charm" xlink:href="#charm" fill="url(#br-{key})" filter="url(#hang)"/>'
-        f'<use href="#charm" xlink:href="#charm" fill="url(#seigaiha)"/>'
+        f'<use href="#charm{n_full}" xlink:href="#charm{n_full}" fill="url(#br-{key})" filter="url(#hang)"/>'
+        f'<use href="#charm{n_full}" xlink:href="#charm{n_full}" fill="url(#seigaiha)"/>'
         f'<path d="{_shape(tw, th, 3.5)}" fill="none" stroke="{P["lantern-gold"]}" stroke-opacity="0.55" stroke-width="1.3"/>'
         f'<path class="thread" d="{stitch}" fill="none" stroke="{a}" stroke-opacity="0.75" stroke-width="1.4" '
         f'style="animation-delay:-{i * 1.7:g}s"/>'
-        f'<g clip-path="url(#charmClip)">'
+        f'<g clip-path="url(#charmClip{n_full})">'
         f'<path class="sheen" d="M0,0 h{SHEEN_W} l-{SHEEN_SKEW},{_g(th)} h-{SHEEN_W} z" fill="url(#sheenG)" '
         f'style="animation-delay:{i * 1.3:g}s"/></g>'
         # medallion with the glyph
@@ -272,19 +285,17 @@ def _charm(i: int, item: tuple, lang: Lang, layout: Layout, x: float, y: float, 
     )
 
 
-def max_lines(layout: Layout) -> int:
-    return max(len(ls) for lang in ("jp", "en") for ls in body_lines(lang, layout))
-
-
 # ---------------------------------------------------------------- layouts
 
 PHONE_GAP = 34
 
 
-def _positions(layout: Layout, th: float) -> list[tuple[float, float]]:
+def _positions(layout: Layout) -> list[tuple[float, float]]:
     tw = TILE_W[layout]
+    ths = tile_heights(layout)
     if layout == "desktop":
-        gap = 26
+        th = ths[0]
+        gap = 20  # row-2 cords pass through these gaps
         x0 = (1200 - 3 * tw - 2 * gap) / 2
         y1 = 118
         y2 = y1 + th + MED_R[layout] + 14
@@ -292,16 +303,18 @@ def _positions(layout: Layout, th: float) -> list[tuple[float, float]]:
         mids = [x0 + tw + gap / 2, x0 + 2 * tw + 1.5 * gap]
         return row1 + [(m - tw / 2, y2) for m in mids]
     x = (600 - tw) / 2
-    y1 = 124
-    return [(x, y1 + k * (th + PHONE_GAP)) for k in range(5)]
+    out, y = [], 124.0
+    for th in ths:
+        out.append((x, y))
+        y += th + PHONE_GAP
+    return out
 
 
 def size_of(layout: Layout) -> tuple[int, int]:
     if layout == "desktop":
         return 1200, 560
-    th = tile_height(layout)
-    _, last_y = _positions(layout, th)[-1]
-    return 600, int(round(last_y + th + 22))
+    _, last_y = _positions(layout)[-1]
+    return 600, int(round(last_y + tile_heights(layout)[-1] + 22))
 
 
 # Stagger for the shared 5 s sway: every charm at a different phase.
@@ -309,8 +322,9 @@ SWAY_DELAYS = (0, -1.1, -2.3, -3.4, -4.3)
 
 
 def _scene(layout: Layout, w: int, h: int, lang: Lang) -> str:
-    th = tile_height(layout)
-    pos = _positions(layout, th)
+    ths = tile_heights(layout)
+    ns = item_lines(layout)
+    pos = _positions(layout)
     rope_dy = ROPE_TOP[layout]
     tw, mr = TILE_W[layout], MED_R[layout]
     lines = body_lines(lang, layout)
@@ -321,16 +335,16 @@ def _scene(layout: Layout, w: int, h: int, lang: Lang) -> str:
         if layout == "desktop":
             top = rope_dy + rope_y(w, cx)
         else:
-            top = rope_dy + rope_y(w, cx) if i == 0 else pos[i - 1][1] + th - 4
+            top = rope_dy + rope_y(w, cx) if i == 0 else pos[i - 1][1] + ths[i - 1] - 4
         cord = (
             f'<path d="M{_g(cx)},{_g(top)} L{_g(cx)},{_g(y - mr - 8)}" stroke="{v}" stroke-width="2.4" stroke-linecap="round"/>'
             + _knot(cx, y - mr - 6)
         )
         halos.append(
-            f'<ellipse cx="{_g(cx)}" cy="{_g(y + th / 2)}" rx="{_g(tw * 0.62)}" ry="{_g(th * 0.72)}" '
+            f'<ellipse cx="{_g(cx)}" cy="{_g(y + ths[i] / 2)}" rx="{_g(tw * 0.62)}" ry="{_g(ths[i] * 0.72)}" '
             f'fill="url(#glow-{item[0]})" class="halo" style="animation-delay:-{i * 1.3:g}s"/>'
         )
-        body = _charm(i, item, lang, layout, x, y, th, lines[i])
+        body = _charm(i, item, lang, layout, x, y, ns[i], lines[i])
         cls = "sway" if layout == "desktop" else "sway swayw"
         sway = f'<g class="{cls}" style="animation-delay:{SWAY_DELAYS[i]:g}s">'
         if layout == "desktop":
@@ -376,8 +390,7 @@ def _frame(w: int, h: int) -> str:
 
 def render_cando(lang: Lang, layout: Layout, fonts) -> str:
     w, h = size_of(layout)
-    th = tile_height(layout)
     body = f'<g clip-path="url(#card)">{_scene(layout, w, h, lang)}</g>{_frame(w, h)}'
     title = SECTION["cando"](lang) + " · " + " / ".join(t(lang) for _, t, _ in CANDO)
-    svg = document(w, h, body, title=title, css=MOTION_CSS + _css(layout), defs=_defs(w, h, TILE_W[layout], th))
+    svg = document(w, h, body, title=title, css=MOTION_CSS + _css(layout), defs=_defs(w, h, TILE_W[layout], layout))
     return embed_fonts(svg, fonts)

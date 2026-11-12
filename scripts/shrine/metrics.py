@@ -7,6 +7,7 @@ East Asian wide/full-width characters are one em; JetBrains Mono is 0.6 em.
 """
 from __future__ import annotations
 
+import re
 import unicodedata
 
 _CHARS = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~·–—→≥≤×%°’“”…'
@@ -106,23 +107,74 @@ def _kind(ch: str) -> str:
     return "A"  # Latin, digits, narrow symbols
 
 
-# Cost of a line break between two character kinds. Breaking after punctuation or
-# a particle (hiragana before a new word) is natural Japanese; splitting a
-# katakana or kanji compound is not.
-_BREAK_COST = {
-    ("H", "C"): 1, ("H", "K"): 1, ("H", "A"): 1,
-    ("A", "C"): 3, ("A", "K"): 3, ("C", "A"): 3, ("K", "A"): 3, ("C", "K"): 4, ("K", "C"): 4,
-    ("C", "H"): 5, ("K", "H"): 5, ("A", "H"): 6, ("H", "H"): 6,
-    ("C", "C"): 14, ("K", "K"): 40, ("A", "A"): 2,
+# Break costs, in the same units as the squared slack (in ems) of a line.
+_FREE_AFTER = set("、。，．！？：；")  # a break right after these is natural
+_PROHIBIT = 500.0  # effectively forbidden; only taken when nothing else fits
+# A line that would start with hiragana begins with a particle (は が を に で と の
+# も へ や から まで より) or with okurigana / a word's continuation: never do that.
+# Breaking after a particle, before a new word, is the natural Japanese break.
+_AFTER_PARTICLE = 0.5
+_AFTER_NAKAGURO = 1.0  # 検索・|AI: between list items
+_BEFORE_BRACKET = 8.0  # allowed, but keep a name with its gloss: Cloud Armor（WAF）
+_PAIR_COST = {
+    ("K", "K"): 100.0,  # inside a katakana word
+    ("K", "C"): 60.0, ("C", "K"): 60.0,  # katakana+kanji compound: テナント分離, 音声モデル
+    ("C", "C"): 30.0,  # inside a kanji compound
+    ("A", "C"): 25.0, ("A", "K"): 25.0, ("C", "A"): 25.0, ("K", "A"): 25.0,  # Silicon上, AIエージェント
 }
+_CAP_PAIR = 15.0  # English: between two Capitalised words ("Cloud Run")
+BAD_BREAK = 25.0  # a break this costly (split compound, line-initial particle) is worse than an extra line
+# Multi-word names that never break (Japanese and English text alike).
+NO_BREAK = (
+    "Cloud Armor", "Cloud Run", "Apple Silicon", "Hugging Face", "Identity Platform",
+    "Agent SDK", "Claude API", "Burp Suite", "Parrot OS",
+)
+_NO_BREAK_PAIRS = {
+    (a, b) for name in NO_BREAK for a, b in zip(name.split(" "), name.split(" ")[1:])
+}
+
+
+def _word_core(tok: str, end: bool) -> str:
+    """The Latin word at the end (or start) of a token."""
+
+    word = r"[A-Za-z0-9]+(?:\.[A-Za-z0-9]+)*"  # "Three.js" yes, a trailing "." no
+    m = re.search(word + "$" if end else "^" + word, tok)
+    return m.group(0) if m else ""
+
+
+def _break_cost(before: str, after: str, spaced: bool) -> float:
+    """Cost of ending a line with token `before` and starting the next with `after`."""
+    if spaced:
+        a, b = _word_core(before, True), _word_core(after, False)
+        if (a, b) in _NO_BREAK_PAIRS:
+            return _PROHIBIT
+        if a[:1].isupper() and b[:1].isupper():
+            return _CAP_PAIR
+        return 0.0
+    x, y = before[-1], after[0]
+    if x in _FREE_AFTER:
+        return 0.0
+    ky = _kind(y)
+    if ky == "H":
+        return _PROHIBIT
+    if x == "・":
+        return _AFTER_NAKAGURO
+    if y in "（「『【〔〈《":
+        return _BEFORE_BRACKET
+    kx = "A" if x in "）」』】〕〉》" else _kind(x)  # a particle after a bracket binds to it
+    if kx == "H":
+        return _AFTER_PARTICLE
+    return _PAIR_COST.get((kx, ky), 2.0)
 
 
 def wrap(text: str, size: float, width: float, *, weight: int = 400, letter_spacing: float = 0.0) -> list[str]:
     """Line breaking for Japanese and English that never truncates.
 
-    Uses the fewest lines possible; among those, picks the breaks with the most
-    even line lengths, no orphaned last line, and (for Japanese) breaks at
-    natural phrase boundaries, following kinsoku rules. English breaks only at
+    Avoids bad breaks first (a line starting with a particle or okurigana, a
+    split katakana/kanji compound, a split product name such as "Cloud Armor"),
+    even at the price of an extra line; then uses the fewest lines; then picks
+    the most even line lengths with no orphaned last line, preferring breaks
+    after 、。 and after particles, and following kinsoku rules. English breaks only at
     spaces. A single piece wider than `width` gets its own (overlong) line, so
     callers that must fit should check the result with text_width().
     """
@@ -133,16 +185,16 @@ def wrap(text: str, size: float, width: float, *, weight: int = 400, letter_spac
         return text_width(s, size, weight=weight, letter_spacing=letter_spacing)
 
     def penalty(j: int) -> float:
-        a, b = toks[j - 1], toks[j]
-        if a == " " or b == " ":
-            return 0.0
-        ka, kb = _kind(a[-1]), _kind(b[0])
-        return 0.0 if ka == "P" else float(_BREAK_COST.get((ka, kb), 2))
+        if toks[j - 1] == " " or toks[j] == " ":
+            before = next((t for t in reversed(toks[:j]) if t != " "), "")
+            after = next((t for t in toks[j:] if t != " "), "")
+            return _break_cost(before, after, True)
+        return _break_cost(toks[j - 1], toks[j], False)
 
-    INF = (10**9, 0.0)
-    best: list[tuple[int, float]] = [INF] * (n + 1)
+    INF = (10**9, 10**9, 0.0)
+    best: list[tuple[int, int, float]] = [INF] * (n + 1)
     nxt = [n] * (n + 1)
-    best[n] = (0, 0.0)
+    best[n] = (0, 0, 0.0)
     for i in range(n - 1, -1, -1):
         if toks[i] == " ":
             best[i], nxt[i] = best[i + 1], nxt[i + 1]
@@ -154,11 +206,14 @@ def wrap(text: str, size: float, width: float, *, weight: int = 400, letter_spac
                 break
             if best[j] == INF:
                 continue
+            bad = 0
             if j == n:  # last line: only penalise an orphan
-                cost = 4 * max(0.0, (0.4 * width - w) / size) ** 2
+                cost = 4 * max(0.0, (0.5 * width - w) / size) ** 2
             else:
-                cost = ((width - w) / size) ** 2 + penalty(j)
-            cand = (best[j][0] + 1, best[j][1] + cost)
+                pen = penalty(j)
+                bad = int(pen >= BAD_BREAK)
+                cost = ((width - w) / size) ** 2 + pen
+            cand = (best[j][0] + bad, best[j][1] + 1, best[j][2] + cost)
             if cand < best[i]:
                 best[i], nxt[i] = cand, j
     lines, i = [], 0
