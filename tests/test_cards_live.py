@@ -1,0 +1,391 @@
+"""Live activity cards (千本鳥居 · 活動): rendered with RuntimeFonts from fixture data."""
+import re
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import pytest
+
+from helpers import assert_min_text, assert_no_external, assert_under, assert_valid_svg
+from scripts.generate.github_data import Event, filter_events, load_fixture
+from scripts.shrine.fonts import FONT_DIR, RuntimeFonts
+from scripts.shrine.svg import visible_strings
+
+FIX = Path(__file__).parent / "fixtures" / "github"
+NOW = datetime(2026, 11, 12, 0, 0, tzinfo=timezone.utc)
+LANGS = ("jp", "en")
+LAYOUTS = ("desktop", "phone")
+# rendered width -> minimum SVG units (12 px rendered); asserted via assert_min_text too
+MIN_UNITS = {"desktop": 17, "phone": 20, "small": 14}
+RENDERED = {"desktop": 846, "phone": 360, "small": 360}
+
+from scripts.shrine.cards import live  # noqa: E402
+
+
+@pytest.fixture(scope="module")
+def data():
+    return load_fixture(FIX)
+
+
+@pytest.fixture(scope="module")
+def rfonts():
+    if not list(FONT_DIR.glob("runtime-*.woff2")):
+        pytest.skip("runtime fonts not generated")
+    return RuntimeFonts()
+
+
+def _events(d):
+    return filter_events(d.events, d.login, [])
+
+
+def _sizes(svg: str) -> list[float]:
+    from scripts.shrine.svg import font_sizes
+
+    return [s for s, deco in font_sizes(svg) if not deco]
+
+
+def _check(svg: str, kind: str) -> None:
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, RENDERED[kind])
+    assert min(_sizes(svg)) >= MIN_UNITS[kind]
+
+
+def _all_cards(data, fonts):
+    """(name, kind, svg) for every live card x language x layout."""
+    out = []
+    ev = _events(data)
+    for lang in LANGS:
+        for layout in LAYOUTS:
+            out.append((f"torii-{layout}-{lang}", layout, live.render_torii_path(data, lang, layout, fonts)))
+            out.append((
+                f"feed-{layout}-{lang}", layout,
+                live.render_feed(ev, NOW, lang, layout, fonts, recent_repos=data.recent_repos),
+            ))
+        for k in ("contrib", "streak", "stars", "followers"):
+            out.append((f"stat-{k}-{lang}", "small", live.render_stat(k, data, lang, fonts)))
+        out.append((f"enso-{lang}", "small", live.render_enso(data, lang, fonts)))
+        out.append((f"hours-{lang}", "small", live.render_hours(data, lang, fonts)))
+    return out
+
+
+# ---------------------------------------------------------------- every card
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("layout", LAYOUTS)
+def test_torii(data, rfonts, lang, layout):
+    svg = live.render_torii_path(data, lang, layout, rfonts)
+    _check(svg, layout)
+    w, h = (1200, 300) if layout == "desktop" else (600, 420)
+    assert f'viewBox="0 0 {w} {h}"' in svg
+    assert svg.count('class="gate') == (53 if layout == "desktop" else 26)
+    total = f"{data.total_year:,}"
+    assert total in visible_strings(svg)
+    assert live.LABELS["torii_total"][lang] in visible_strings(svg)
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("layout", LAYOUTS)
+def test_feed(data, rfonts, lang, layout):
+    ev = _events(data)
+    svg = live.render_feed(ev, NOW, lang, layout, rfonts, recent_repos=data.recent_repos)
+    _check(svg, layout)
+    assert f'viewBox="0 0 {1200 if layout == "desktop" else 600} ' in svg
+    vis = visible_strings(svg)
+    assert live.LABELS["verb_push"][lang] in vis
+    assert "voice_identify" in vis
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("kind", ["contrib", "streak", "stars", "followers"])
+def test_stat(data, rfonts, lang, kind):
+    svg = live.render_stat(kind, data, lang, rfonts)
+    _check(svg, "small")
+    assert 'viewBox="0 0 410 200"' in svg
+    vis = visible_strings(svg)
+    number = {
+        "contrib": f"{data.total_year:,}",
+        "streak": "3",
+        "stars": f"{data.stars:,}",
+        "followers": f"{data.followers:,}",
+    }[kind]
+    assert number in vis
+
+
+@pytest.mark.parametrize("lang", LANGS)
+def test_enso(data, rfonts, lang):
+    svg = live.render_enso(data, lang, rfonts)
+    _check(svg, "small")
+    assert 'viewBox="0 0 410 410"' in svg
+    vis = visible_strings(svg)
+    for name, _b, _c in data.languages[:5]:
+        assert name in vis
+    assert live.LABELS["other"][lang] in vis
+    assert svg.count('class="arc') == 6
+
+
+@pytest.mark.parametrize("lang", LANGS)
+def test_hours(data, rfonts, lang):
+    svg = live.render_hours(data, lang, rfonts)
+    _check(svg, "small")
+    assert 'viewBox="0 0 410 410"' in svg
+    vis = visible_strings(svg)
+    for k in ("asa", "hiru", "yu", "yoru"):
+        assert live.LABELS[f"hour_{k}"][lang] in vis
+    assert live.LABELS["public_commits"][lang] in vis
+
+
+# ---------------------------------------------------------------- behaviour
+
+
+def test_feed_escapes_and_truncates(rfonts):
+    repo = 'a&b<c>"' + "x" * 40
+    ev = [Event("push", repo, NOW - timedelta(hours=2))]
+    for layout in LAYOUTS:
+        svg = live.render_feed(ev, NOW, "en", layout, rfonts)
+        assert_valid_svg(svg)
+        assert "&amp;" in svg
+        lines = visible_strings(svg).splitlines()
+        assert any(l.endswith("…") for l in lines), lines
+        assert "x" * 30 not in visible_strings(svg).replace("\n", "")
+
+
+def test_fit():
+    assert live.fit("short", 28) == "short"
+    s = live.fit("y" * 40, 28)
+    assert len(s) == 28 and s.endswith("…")
+    assert live.fit("z" * 28, 28) == "z" * 28
+
+
+def test_feed_backfill_when_few_events(data, rfonts):
+    """0 events -> slips come from the owner's recent repos, labelled 'updated'."""
+    svg = live.render_feed([], NOW, "jp", "desktop", rfonts, recent_repos=data.recent_repos)
+    vis = visible_strings(svg)
+    assert live.LABELS["verb_updated"]["jp"] in vis
+    assert "hermes-run" in vis
+    assert live.LABELS["feed_empty"]["jp"] not in vis
+    # 2 events -> backfilled, the event repo not repeated as 'updated'
+    ev = [
+        Event("push", "sky9262/hermes-run", NOW - timedelta(hours=3)),
+        Event("star", "someone/cool", NOW - timedelta(days=1)),
+    ]
+    svg = live.render_feed(ev, NOW, "en", "desktop", rfonts, recent_repos=data.recent_repos)
+    vis = visible_strings(svg)
+    assert vis.count("hermes-run") == 1
+    assert live.LABELS["verb_updated"]["en"] in vis
+    assert svg.count('class="slip"') <= 5
+
+
+def test_feed_no_backfill_with_enough_events(data, rfonts):
+    ev = [Event("push", f"sky9262/r{i}", NOW - timedelta(hours=i + 1)) for i in range(4)]
+    svg = live.render_feed(ev, NOW, "en", "desktop", rfonts, recent_repos=data.recent_repos)
+    assert live.LABELS["verb_updated"]["en"] not in visible_strings(svg)
+    assert svg.count('class="slip"') == 4
+
+
+def test_feed_caps_at_five(rfonts):
+    ev = [Event("star", f"o/r{i}", NOW - timedelta(hours=i + 1)) for i in range(9)]
+    for layout in LAYOUTS:
+        svg = live.render_feed(ev, NOW, "jp", layout, rfonts)
+        assert svg.count('class="slip"') == 5
+
+
+def test_feed_empty(rfonts):
+    for lang in LANGS:
+        for layout in LAYOUTS:
+            svg = live.render_feed([], NOW, lang, layout, rfonts)
+            assert_valid_svg(svg)
+            assert live.LABELS["feed_empty"][lang] in visible_strings(svg)
+            assert svg.count('class="slip"') == 1
+
+
+def test_feed_never_filters_itself(rfonts):
+    """render_feed renders what it is given; filtering is the generator's job."""
+    ev = [Event("push", "example-org/public-a", NOW - timedelta(hours=1))]
+    svg = live.render_feed(ev, NOW, "en", "desktop", rfonts)
+    assert "example-org/public-a" in visible_strings(svg).replace("\n", "")
+
+
+def test_private_names_never_rendered(data, rfonts):
+    for name, _kind, svg in _all_cards(data, rfonts):
+        for p in data.private_repo_names:
+            assert p not in svg, (name, p)
+
+
+def test_torii_all_zero_renders(data, rfonts):
+    zero = replace(data, days=[(d, 0) for d, _ in data.days], total_year=0)
+    for lang in LANGS:
+        for layout in LAYOUTS:
+            svg = live.render_torii_path(zero, lang, layout, rfonts)
+            assert_valid_svg(svg)
+            assert svg.count('class="gate') == (53 if layout == "desktop" else 26)
+    svg = live.render_torii_path(zero, "jp", "desktop", rfonts)
+    heights = [float(h) for h in re.findall(r'data-h="([\d.]+)"', svg)]
+    assert len(heights) == 53 and set(heights) == {8.0}
+
+
+def test_torii_gate_height_formula(data, rfonts):
+    svg = live.render_torii_path(data, "en", "desktop", rfonts)
+    weeks = live.weekly(data.days, 53)
+    top = max(1, max(weeks))
+    heights = [float(h) for h in re.findall(r'data-h="([\d.]+)"', svg)]
+    assert heights == [pytest.approx(8 + 72 * w / top, abs=0.01) for w in weeks]
+    assert sum(weeks) <= data.total_year
+
+
+def test_torii_weekly_shapes(data):
+    w = live.weekly(data.days, 53)
+    assert len(w) == 53
+    assert len(live.weekly(data.days, 26)) == 26
+    assert w[-26:] == live.weekly(data.days, 26)
+    assert live.weekly([], 53) == [0] * 53
+
+
+def test_torii_kitsune(data, rfonts):
+    png = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00"
+        b"\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
+        b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+    for layout in LAYOUTS:
+        svg = live.render_torii_path(data, "jp", layout, rfonts, kitsune_png=png)
+        assert_valid_svg(svg)
+        assert_no_external(svg)
+        assert "data:image/png;base64," in svg
+    assert "data:image/png" not in live.render_torii_path(data, "jp", "desktop", rfonts)
+
+
+@pytest.mark.parametrize(
+    "delta,jp,en",
+    [
+        (timedelta(minutes=30), "たった今", "just now"),
+        (timedelta(hours=5), "5時間前", "5h ago"),
+        (timedelta(days=3), "3日前", "3d ago"),
+        (timedelta(minutes=59), "たった今", "just now"),
+        (timedelta(hours=47, minutes=59), "47時間前", "47h ago"),
+        (timedelta(hours=48), "2日前", "2d ago"),
+    ],
+)
+def test_ago(delta, jp, en):
+    assert live.ago(NOW - delta, NOW, "jp") == jp
+    assert live.ago(NOW - delta, NOW, "en") == en
+
+
+def test_ago_future_is_just_now():
+    assert live.ago(NOW + timedelta(minutes=5), NOW, "en") == "just now"
+
+
+def test_thousands_separators(data, rfonts):
+    big = replace(data, total_year=12345, stars=1234, followers=1000)
+    assert "12,345" in visible_strings(live.render_stat("contrib", big, "en", rfonts))
+    assert "1,234" in visible_strings(live.render_stat("stars", big, "jp", rfonts))
+    assert "12,345" in visible_strings(live.render_torii_path(big, "jp", "phone", rfonts))
+
+
+def test_labels_complete():
+    for key, table in live.LABELS.items():
+        assert set(table) == {"jp", "en"}, key
+        assert all(v.strip() for v in table.values()), key
+    for k in ("asa", "hiru", "yu", "yoru"):
+        assert live.LABELS[f"hour_{k}"]["jp"] in "朝昼夕夜"
+    assert live.LABELS["public_commits"]["jp"] == "公開コミット"
+    assert live.LABELS["public_commits"]["en"] == "public commits"
+
+
+def test_enso_handles_few_languages(data, rfonts):
+    one = replace(data, languages=[("Python", 100, "#3572A5")])
+    svg = live.render_enso(one, "en", rfonts)
+    assert_valid_svg(svg)
+    none = replace(data, languages=[])
+    assert_valid_svg(live.render_enso(none, "jp", rfonts))
+
+
+def test_hours_handles_no_commits(data, rfonts):
+    svg = live.render_hours(replace(data, commit_times=[]), "jp", rfonts)
+    assert_valid_svg(svg)
+
+
+# ---------------------------------------------------------------- fonts
+
+
+def _face_cmaps():
+    pytest.importorskip("fontTools")
+    pytest.importorskip("brotli")
+    from fontTools.ttLib import TTFont
+
+    out = {}
+    for fam, stem in (("Shrine Serif", "serif"), ("Shrine Mono", "mono")):
+        for w in (400, 700):
+            out[(fam, w)] = set(TTFont(FONT_DIR / f"runtime-{stem}-{w}.woff2").getBestCmap())
+    return out
+
+
+def _texts(svg: str):
+    """(family, weight, text) for every text run, with inherited font attributes."""
+    out = []
+
+    def walk(el, fam, w):
+        tag = el.tag.rsplit("}", 1)[-1]
+        fam = el.get("font-family", fam)
+        fw = el.get("font-weight")
+        w = int(fw) if fw else w
+        if tag in ("text", "tspan") and el.text:
+            out.append((fam, w, el.text))
+        for c in el:
+            walk(c, fam, w)
+            if tag in ("text", "tspan") and c.tail and c.tail.strip():
+                out.append((fam, w, c.tail))
+
+    walk(ET.fromstring(svg), None, 400)
+    return out
+
+
+def test_live_text_within_runtime_glyphs(data, rfonts):
+    cmaps = _face_cmaps()
+    serif_any = cmaps[("Shrine Serif", 400)] & cmaps[("Shrine Serif", 700)]
+    extra = [
+        live.render_feed([], NOW, lang, layout, rfonts) for lang in LANGS for layout in LAYOUTS
+    ] + [
+        live.render_feed(
+            [Event(k, "sky9262/x", NOW - timedelta(hours=h)) for k, h in
+             (("push", 0), ("create", 5), ("release", 60), ("star", 1), ("fork", 2))],
+            NOW, lang, "desktop", rfonts,
+        )
+        for lang in LANGS
+    ]
+    svgs = [s for _n, _k, s in _all_cards(data, rfonts)] + extra
+    for svg in svgs:
+        runs = _texts(svg)
+        assert runs
+        for fam, w, text in runs:
+            assert fam in ("Shrine Serif", "Shrine Mono"), (fam, text)
+            cmap = cmaps[(fam, 700 if w >= 600 else 400)]
+            missing = {c for c in text if ord(c) not in cmap and not c.isspace()}
+            assert not missing, (fam, w, text, missing)
+        # the <title> is in the runtime set too
+        title = ET.fromstring(svg).find("{http://www.w3.org/2000/svg}title").text or ""
+        assert not {c for c in title if ord(c) not in serif_any and not c.isspace()}, title
+
+
+def test_live_stdlib_only():
+    code = (
+        "import sys; sys.modules['fontTools'] = None\n"
+        "from pathlib import Path\n"
+        "from datetime import datetime, timezone\n"
+        "from scripts.generate.github_data import load_fixture\n"
+        "from scripts.shrine.cards import live\n"
+        "from scripts.shrine.fonts import RuntimeFonts\n"
+        "d = load_fixture(Path('tests/fixtures/github'))\n"
+        "f = RuntimeFonts()\n"
+        "live.render_torii_path(d, 'en', 'desktop', f)\n"
+        "live.render_feed([], datetime.now(timezone.utc), 'en', 'phone', f, recent_repos=d.recent_repos)\n"
+        "live.render_hours(d, 'jp', f)\n"
+    )
+    root = Path(__file__).resolve().parent.parent
+    r = subprocess.run([sys.executable, "-c", code], cwd=root, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr

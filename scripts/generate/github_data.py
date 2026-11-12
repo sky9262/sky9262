@@ -13,7 +13,7 @@ import logging
 import urllib.error
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Literal
@@ -99,6 +99,9 @@ class Data:
     commit_times: list[datetime]
     live: dict[str, tuple[int, int]]
     private_repo_names: list[str]
+    # own public non-fork repos as (full_name, pushed_at UTC), newest first; the feed
+    # backfills from these when few public events remain after filtering
+    recent_repos: list[tuple[str, datetime]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------- parsing
@@ -153,6 +156,18 @@ def _parse(
         ((n, b, c) for n, (b, c) in langs.items()), key=lambda x: (-x[1], x[0])
     )
 
+    # The profile repo is left out: the generator force-pushes the output branch
+    # there every run, so its pushedAt says nothing about the owner's work.
+    recent = sorted(
+        (
+            (r["nameWithOwner"], _ts(r["pushedAt"]))
+            for r in repos
+            if r.get("pushedAt") and r["nameWithOwner"].lower() != f"{login}/{login}".lower()
+        ),
+        key=lambda x: (x[1], x[0]),
+        reverse=True,
+    )
+
     evs = [
         Event(kind=_KINDS[e["type"]], repo=e["repo"]["name"], at=_ts(e["created_at"]))
         for e in events
@@ -174,6 +189,7 @@ def _parse(
             for r in repos
         },
         private_repo_names=[p["name"] for p in private],
+        recent_repos=recent,
     )
 
 

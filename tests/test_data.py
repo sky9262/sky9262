@@ -59,6 +59,31 @@ def test_parse_fixture():
     assert d.private_repo_names == ["private-one", "private-two", "private-three", "private-four"]
 
 
+def test_recent_repos():
+    """Own public non-fork repos by most recent push (UTC, newest first) for the feed
+    backfill. The profile repo itself is left out: the generator's force-push to the
+    output branch bumps its pushedAt every run."""
+    d = load_fixture(FIX)
+    names = [n for n, _ in d.recent_repos]
+    assert names == [
+        "sky9262/hermes-run",
+        "sky9262/cinematic-glb2particle-skill",
+        "sky9262/voice_identify",
+        "sky9262/winLock",
+        "sky9262/phishEye",
+    ]
+    times = [t for _, t in d.recent_repos]
+    assert times == sorted(times, reverse=True)
+    assert all(t.tzinfo is not None and t.utcoffset() == timedelta(0) for t in times)
+    assert d.recent_repos[0][1] == datetime(2026, 6, 26, 5, 51, 53, tzinfo=timezone.utc)
+    assert "sky9262/forked-example" not in names
+
+
+def test_recent_repos_default_empty():
+    d = Data("x", [], 0, 0, 0, 0, [], [], [], {}, [])
+    assert d.recent_repos == []
+
+
 def test_fixtures_are_anonymised():
     text = "".join(p.read_text() for p in FIX.glob("*.json"))
     assert not re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
