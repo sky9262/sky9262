@@ -266,6 +266,7 @@ def _text_phone(lang: Lang, top: int) -> str:
     cx = 300
     tag, tag_attr = _tagline(lang)
     size = 20
+    role_size = 22 if lang == "en" else 24  # the EN role is longer; 22 keeps it within x 30-570
     term_w = size * 1.2 + size * 0.45 + MONO_ADVANCE * size * len(HERO["terminal"](lang)) + size * 0.8
     return (
         '<g filter="url(#lift)">'
@@ -276,7 +277,7 @@ def _text_phone(lang: Lang, top: int) -> str:
         f'<text x="{cx + 5}" y="{top + 174}" class="rise d2" {SERIF} font-size="32" font-weight="700" '
         f'fill="{P["vermilion"]}" letter-spacing="10">{esc(HERO["kana"](lang))}</text>'
         f'<rect x="{cx - 130}" y="{top + 197}" width="260" height="2" fill="url(#ruleC)" class="rise d2"/>'
-        f'<text x="{cx}" y="{top + 240}" class="rise d3" {SERIF} font-size="24" fill="{P["text-soft-a"]}" '
+        f'<text x="{cx}" y="{top + 240}" class="rise d3" {SERIF} font-size="{role_size}" fill="{P["text-soft-a"]}" '
         f'letter-spacing="1.5">{esc(HERO["role"](lang))}</text>'
         f'<text x="{cx}" y="{top + 282}" class="rise d4" {SERIF} font-size="21" fill="{P["text-soft-a"]}" '
         f'opacity="0.82"{tag_attr}>{esc(tag)}</text>'

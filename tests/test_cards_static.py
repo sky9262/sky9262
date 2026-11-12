@@ -51,10 +51,10 @@ def test_hero_gif(fonts, lang, layout):
 def test_hero_text_order_and_lang(fonts):
     jp = visible_strings(render_hero("jp", "desktop", fonts))
     en = visible_strings(render_hero("en", "desktop", fonts))
-    assert "AIエンジニア" in jp and "古き社に、新しい知性を。" in jp
+    assert "AI・セキュリティエンジニア" in jp and "古き社に、新しい知性を。" in jp
     assert "Where ancient spirits meet artificial minds." in en
     body = en[en.index("summon --engineer"):]  # skip the <title>
-    pos = [body.index(s) for s in ("Akash Kumar", "アカシュ・クマァ", "AI Engineer", "Where ancient")]
+    pos = [body.index(s) for s in ("Akash Kumar", "アカシュ・クマァ", "AI & Security Engineer", "Where ancient")]
     assert pos == sorted(pos)
 
 

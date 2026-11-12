@@ -28,7 +28,7 @@ HERO: dict[str, T] = {
     "terminal": T("kami@jinja:~$ summon --engineer", "kami@jinja:~$ summon --engineer"),
     "name": T("Akash Kumar", "Akash Kumar"),
     "kana": T("アカシュ・クマァ", "アカシュ・クマァ"),
-    "role": T("AIエンジニア · 日本在住", "AI Engineer · 日本で働いています"),
+    "role": T("AI・セキュリティエンジニア · 日本在住", "AI & Security Engineer · 日本で働いています"),
     "tagline": T("古き社に、新しい知性を。", "Where ancient spirits meet artificial minds."),
 }
 
