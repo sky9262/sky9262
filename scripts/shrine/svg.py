@@ -123,14 +123,14 @@ def rope(width: int) -> str:
     mid = width / 2
     path = f"M0,6 Q{_num(mid)},26 {width},6"
     tassels = "".join(
-        f'<path d="M{_num(x)},{_num(y)} l-4,8 l5,4 l-4,8 l5,4" fill="none" stroke="{P['moon-a']}" stroke-width="2"/>'
+        f'<path d="M{_num(x)},{_num(y)} l-4,8 l5,4 l-4,8 l5,4" fill="none" stroke="{P["moon-a"]}" stroke-width="2"/>'
         for x, y in (
             (width * f, 6 + 20 * 4 * f * (1 - f)) for f in (0.2, 0.4, 0.6, 0.8)
         )
     )
     return (
         f'<g class="rope"><path d="{path}" fill="none" stroke="#d8c08a" stroke-width="7" stroke-linecap="round"/>'
-        f'<path d="{path}" fill="none" stroke="{P['wood-grain']}" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 6"/>'
+        f'<path d="{path}" fill="none" stroke="{P["wood-grain"]}" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 6"/>'
         f"{tassels}</g>"
     )
 
