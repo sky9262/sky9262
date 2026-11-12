@@ -221,3 +221,18 @@ def visible_strings(svg: str) -> str:
 
     walk2(_parse(svg))
     return "\n".join(out)
+
+
+# ---------------------------------------------------------------- font embedding
+
+def _text_nodes(svg: str) -> str:
+    """Concatenated content of every <text> element (incl. tspans)."""
+    return "".join("".join(el.itertext()) for el in _parse(svg).iter() if _local(el.tag) == "text")
+
+
+def embed_fonts(svg: str, fonts) -> str:
+    """Inject fonts.css(<visible <text> content>) into the document's <style>."""
+    css = fonts.css(_text_nodes(svg))
+    if "<style>" in svg:
+        return svg.replace("<style>", "<style>" + css, 1)
+    return svg.replace("</defs>", f"</defs><style>{css}</style>", 1)
