@@ -184,6 +184,11 @@ BRAND["Whisper"] = (
     "#74aa9c",
 )
 
+# Stack tools with no logo: rendered as name-only lanterns.
+TEXT_ONLY: frozenset[str] = frozenset(
+    {"RAG", "LoRA/QLoRA", "OSINT", "Hermes", "vector DBs", "CDP", "WebSockets"}
+)
+
 GLYPH: dict[str, str] = {
     "lock": (
         "M5 10h14v11H5zM7 10V7a5 5 0 0 1 10 0v3h-2.2V7a2.8 2.8 0 0 0-5.6 0v3z"

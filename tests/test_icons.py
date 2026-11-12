@@ -2,10 +2,8 @@ import re
 
 from helpers import assert_no_external, assert_valid_svg
 from scripts.shrine.content import CANDO, LINKS, STACK
-from scripts.shrine.icons import BRAND, GLYPH, icon, on_dark
+from scripts.shrine.icons import BRAND, GLYPH, TEXT_ONLY, icon, on_dark
 from scripts.shrine.svg import document
-
-TEXT_ONLY = {"RAG", "LoRA/QLoRA", "OSINT", "Hermes", "vector DBs", "CDP", "WebSockets"}
 
 
 def test_every_stack_tool_resolved_or_textonly():
@@ -13,6 +11,7 @@ def test_every_stack_tool_resolved_or_textonly():
     missing = [t for t in tools if t not in BRAND and t not in TEXT_ONLY]
     assert not missing
     assert set(BRAND) <= set(tools)
+    assert not TEXT_ONLY & set(BRAND)
 
 
 def test_brand_entries_wellformed():

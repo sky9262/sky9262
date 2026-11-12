@@ -164,6 +164,12 @@ def test_metrics_match_fonts():
         pytest.skip("font sources absent")
     text = "".join(p.lines(lang) + p.title(lang) for p in active_plaques() for lang in ("jp", "en"))
     text += NDA("jp") + NDA("en")
+    from scripts.shrine.content import CANDO, SECTION, STACK
+
+    for lang in ("jp", "en"):
+        text += "".join(t(lang) + l(lang) for _, t, l in CANDO)
+        text += "".join(g(lang) + "".join(tools) for g, tools in STACK)
+        text += SECTION["cando"](lang) + SECTION["stack"](lang)
     for weight, name in ((400, "Regular"), (700, "Bold")):
         f = TTFont(str(SERIF_DIR / f"NotoSerifJP-{name}.ttf"))
         cmap, hm = f.getBestCmap(), f["hmtx"]
@@ -189,3 +195,158 @@ def test_plaque_stdlib_only():
     root = Path(__file__).resolve().parent.parent
     r = subprocess.run([sys.executable, "-c", code], cwd=root, capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
+
+
+# ---------------------------------------------------------------- line wrapping
+
+from scripts.shrine.metrics import wrap  # noqa: E402
+
+
+def test_wrap_never_truncates_and_fits():
+    jp = "自律型AIのガードレール、テナント分離、監査ログ。GCPのIAPとCloud Armor（WAF）による防御。"
+    lines = wrap(jp, 17.2, 330)
+    assert "".join(l.replace(" ", "") for l in lines) == jp.replace(" ", "")
+    for line in lines:
+        assert text_width(line, 17.2) <= 330
+    en = "Guardrails for autonomous AI, tenant isolation, audit logs; GCP IAP and Cloud Armor WAF."
+    lines = wrap(en, 17.2, 330)
+    assert " ".join(lines) == en
+    assert all(text_width(l, 17.2) <= 330 for l in lines)
+
+
+def test_wrap_kinsoku():
+    """No line starts with closing punctuation or ends with an opening bracket."""
+    text = "社内文書を根拠に回答するRAG（LangChain）と、LoRA・QLoRAによる追加学習。" * 3
+    for width in (120, 160, 200, 260, 330):
+        for line in wrap(text, 17.2, width):
+            assert line[0] not in "、。・）", (width, line)
+            assert line[-1] != "（", (width, line)
+
+
+def test_wrap_keeps_katakana_words():
+    lines = wrap(
+        "拡散モデルによるポートレート生成の研究、GLBモデルをパーティクルに変えるThree.jsの演出、"
+        "再利用できるエージェントスキルの開発。",
+        17.2,
+        330,
+    )
+    assert not any(l.startswith("ト") or l.endswith("ェン") for l in lines), lines
+
+
+# ---------------------------------------------------------------- what I can do (我が道)
+
+from scripts.shrine.cards.cando import BODY_SIZE, TEXT_W, body_lines, render_cando, title_fit  # noqa: E402
+from scripts.shrine.content import CANDO, SECTION, STACK  # noqa: E402
+
+CANDO_VIEWBOX = {"desktop": "0 0 1200 560", "phone": "0 0 600 1256"}  # phone: 3-line charms need more than the planned 1180
+MIN_UNITS = {"desktop": 17, "phone": 20}
+
+
+def _norm(seen: str, lang: str) -> str:
+    """Visible text with wrapped lines rejoined (JP lines join directly, EN with a space)."""
+    if lang == "jp":
+        return seen.replace("\n", "")
+    return " ".join(seen.split())
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_cando(fonts, lang, layout):
+    svg = render_cando(lang, layout, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, WIDTH[layout])
+    assert f'viewBox="{CANDO_VIEWBOX[layout]}"' in svg
+    seen = visible_strings(svg)
+    joined = _norm(seen, lang)
+    for _, title, line in CANDO:
+        assert title(lang) in seen
+        if lang == "jp":  # a JP line may wrap at an inner space ("Cloud Armor")
+            assert line(lang).replace(" ", "") in joined.replace(" ", "")
+        else:
+            assert line(lang) in joined
+    for part in SECTION["cando"](lang).split(" · "):
+        assert part in seen
+    assert "@font-face" in svg
+    for emoji in ("🤖", "📚", "⚡", "🎨", "🛡"):
+        assert emoji not in svg
+    # five tiles, each swaying with its own delay
+    delays = re.findall(r'class="sway[^"]*"[^>]*animation-delay:(-?[\d.]+)s', svg)
+    assert len(delays) == 5 and len(set(delays)) == 5
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_cando_text_fits(lang, layout):
+    size = BODY_SIZE[layout]
+    assert size >= MIN_UNITS[layout]
+    for (_, _, line), lines in zip(CANDO, body_lines(lang, layout)):
+        if layout == "desktop":
+            assert len(lines) <= 4, lines
+        sep = "" if lang == "jp" else " "
+        assert sep.join(lines).replace(" ", "") == line(lang).replace(" ", "")
+        for l in lines:
+            assert text_width(l, size) <= TEXT_W[layout], l
+    for _, title, _ in CANDO:
+        ts, ls = title_fit(title(lang), layout)
+        assert ts >= MIN_UNITS[layout] + 3  # titles stay clearly larger than the body
+        assert text_width(title(lang), ts, weight=700, letter_spacing=ls) <= TEXT_W[layout]
+
+
+# ---------------------------------------------------------------- tech stack (道具)
+
+from scripts.shrine.cards.stack import plan, render_stack  # noqa: E402
+from scripts.shrine.icons import BRAND, TEXT_ONLY  # noqa: E402
+
+TOOLS = [t for _, items in STACK for t in items]
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_stack(fonts, lang, layout):
+    svg = render_stack(lang, layout, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, WIDTH[layout])
+    w = 1200 if layout == "desktop" else 600
+    h, _ = plan(lang, layout)
+    assert f'viewBox="0 0 {w} {h}"' in svg
+    seen = visible_strings(svg)
+    flat = " ".join(seen.split())
+    for tool in TOOLS:
+        assert tool in flat, tool
+    other = "en" if lang == "jp" else "jp"
+    for label, _ in STACK:
+        assert label(lang) in seen
+        assert label(other) not in seen
+    for part in SECTION["stack"](lang).split(" · "):
+        assert part in seen
+    for tool in BRAND:
+        assert BRAND[tool][0] in svg, tool  # real logo path
+    assert "@font-face" in svg
+    assert "@keyframes lightup" in svg
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_stack_lightup_sequence(fonts, lang, layout):
+    svg = render_stack(lang, layout, fonts)
+    _, tiles = plan(lang, layout)
+    anims = re.findall(r"animation:lightup \.6s ease-out ([\d.]+)s both", svg)
+    assert len(anims) == len(TOOLS) == len(tiles)
+    expected = sorted(f"{round(0.15 * t.k, 2):g}" for t in tiles)
+    assert sorted(anims) == expected
+    assert max(float(a) for a in anims) + 0.6 <= 3.0  # fully lit within 3 s
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_stack_layout(lang, layout):
+    """Every lantern sits inside the card and no two overlap; brand tools carry a logo."""
+    h, tiles = plan(lang, layout)
+    w = 1200 if layout == "desktop" else 600
+    assert [t.name for t in tiles] == TOOLS
+    for t in tiles:
+        assert 0 < t.x and t.x + t.w < w and 0 < t.y and t.y + t.h < h, t
+        assert t.logo == (t.name not in TEXT_ONLY)
+    for i, a in enumerate(tiles):
+        for b in tiles[i + 1:]:
+            apart = a.x + a.w <= b.x or b.x + b.w <= a.x or a.y + a.h <= b.y or b.y + b.h <= a.y
+            assert apart, (a.name, b.name)

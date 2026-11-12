@@ -118,20 +118,66 @@ def lantern(x: float, y: float, delay_s: float = 0) -> str:
     )
 
 
-def rope(width: int) -> str:
-    """Shimenawa: a sagging twisted rope with paper shide tassels."""
+def rope_y(width: float, x: float) -> float:
+    """Height of the rope's centre line at x (the curve drawn by rope())."""
+    f = x / width
+    return 6 + 40 * f * (1 - f)
+
+
+def rope(width: int, tassels: tuple[float, ...] = (0.2, 0.4, 0.6, 0.8)) -> str:
+    """Shimenawa: a sagging twisted rope with paper shide tassels at the given fractions."""
     mid = width / 2
     path = f"M0,6 Q{_num(mid)},26 {width},6"
-    tassels = "".join(
+    tassels_svg = "".join(
         f'<path d="M{_num(x)},{_num(y)} l-4,8 l5,4 l-4,8 l5,4" fill="none" stroke="{P["moon-a"]}" stroke-width="2"/>'
-        for x, y in (
-            (width * f, 6 + 20 * 4 * f * (1 - f)) for f in (0.2, 0.4, 0.6, 0.8)
-        )
+        for x, y in ((width * f, round(rope_y(width, width * f) + 2, 2)) for f in tassels)
     )
     return (
         f'<g class="rope"><path d="{path}" fill="none" stroke="#d8c08a" stroke-width="7" stroke-linecap="round"/>'
         f'<path d="{path}" fill="none" stroke="{P["wood-grain"]}" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 6"/>'
-        f"{tassels}</g>"
+        f"{tassels_svg}</g>"
+    )
+
+
+def section_heading(text: str, cx: float, y: float, size: float, sub_size: float, *, rule: float = 150) -> str:
+    """A section title such as "我が道 · できること": the first part large in lantern
+    gold, the second smaller in vermilion, flanked by fading vermilion rules.
+    Needs the `headInk` and `ruleL`/`ruleR` gradients from heading_defs()."""
+    from .metrics import text_width
+
+    main, _, sub = text.partition(" · ")
+    gap = sub_size * 0.9
+    ls_main, ls_sub = size * 0.08, sub_size * 0.18
+    w = text_width(main, size, weight=700, letter_spacing=ls_main)
+    if sub:
+        w += gap + text_width(sub, sub_size, letter_spacing=ls_sub)
+    x0 = cx - w / 2
+    sub_span = (
+        f'<tspan dx="{_num(round(gap, 2))}" font-size="{_num(sub_size)}" font-weight="400" '
+        f'fill="{P["vermilion"]}" letter-spacing="{_num(round(ls_sub, 2))}">{esc(sub)}</tspan>'
+        if sub
+        else ""
+    )
+    pad = size * 0.6
+    ry = y - size * 0.32
+    return (
+        f'<g class="rise">'
+        f'<rect x="{_num(round(x0 - pad - rule, 2))}" y="{_num(round(ry - 0.75, 2))}" width="{_num(rule)}" height="1.5" fill="url(#ruleL)"/>'
+        f'<rect x="{_num(round(x0 + w + pad, 2))}" y="{_num(round(ry - 0.75, 2))}" width="{_num(rule)}" height="1.5" fill="url(#ruleR)"/>'
+        f'<path d="M{_num(round(x0 - pad + 2, 2))},{_num(round(ry, 2))} l-5,-5 l-5,5 l5,5 z M{_num(round(x0 + w + pad - 2, 2))},{_num(round(ry, 2))} l5,-5 l5,5 l-5,5 z" fill="{P["vermilion"]}"/>'
+        f'<text x="{_num(round(x0, 2))}" y="{_num(y)}" font-family="Shrine Serif" font-size="{_num(size)}" font-weight="700" '
+        f'fill="url(#headInk)" letter-spacing="{_num(round(ls_main, 2))}">{esc(main)}{sub_span}</text></g>'
+    )
+
+
+def heading_defs() -> str:
+    return (
+        f'<linearGradient id="headInk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{P["moon-a"]}"/>'
+        f'<stop offset="1" stop-color="{P["lantern-gold"]}"/></linearGradient>'
+        f'<linearGradient id="ruleL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{P["vermilion"]}" stop-opacity="0"/>'
+        f'<stop offset="1" stop-color="{P["vermilion"]}"/></linearGradient>'
+        f'<linearGradient id="ruleR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{P["vermilion"]}"/>'
+        f'<stop offset="1" stop-color="{P["vermilion"]}" stop-opacity="0"/></linearGradient>'
     )
 
 
