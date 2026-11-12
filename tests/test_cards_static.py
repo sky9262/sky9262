@@ -129,7 +129,31 @@ def test_plaque_stagger(fonts):
     svg = render_plaque(p, "en", 3, fonts)
     assert re.search(r'class="sheen"[^>]*animation-delay:-4.5s', svg)
     assert re.search(r'class="spin"[^>]*animation-delay:-4.5s', svg)  # motif phase
+    assert re.search(r'class="toriiGlow"[^>]*animation-delay:-4.5s', svg)  # lantern glow
+    assert ".rope path:nth-child(n+3){animation-delay:-4.5s}" in svg  # shide flutter
+    assert re.search(r'class="tassel"[^>]*animation-delay:-5.5s', svg)  # cord tassel (-1 s own phase)
     assert "animation-delay:-4.5s" not in render_plaque(p, "en", 0, fonts)
+
+
+def test_plaque_overflow_guard(fonts):
+    """An unbreakable line wider than its column fails the build, never renders clipped."""
+    import dataclasses
+
+    from scripts.shrine.content import T
+
+    p = _plaque("scout")
+    long_word = "Supercalifragilisticexpialidocious-and-then-some-more"
+    bad_lines = dataclasses.replace(p, lines=T(p.lines.jp, p.lines.en + "\n" + long_word))
+    with pytest.raises(ValueError):
+        detail_lines(bad_lines, "en")
+    with pytest.raises(ValueError):
+        render_plaque(bad_lines, "en", 0, fonts)
+    bad_title = dataclasses.replace(p, title=T(p.title.jp, long_word))
+    with pytest.raises(ValueError):
+        render_plaque(bad_title, "en", 0, fonts)
+    bad_sub = dataclasses.replace(p, subtitle=T(long_word, p.subtitle.en))
+    with pytest.raises(ValueError):
+        render_plaque(bad_sub, "jp", 0, fonts)
 
 
 def test_plaque_padding():
@@ -182,8 +206,10 @@ def test_detail_lines_fit(index, pid, lang):
         assert len(items) == len(originals)
         for pieces, line in zip(items, originals):
             assert _compact("".join(pieces)) == _compact(line)
-    else:  # one paragraph, the authored lines as written
-        assert items == [originals]
+    else:  # one paragraph, wrapped by metrics.wrap()
+        assert len(items) == 1
+        assert " ".join(items[0]) == " ".join(originals)
+        _assert_arrow_glue(items[0])
     width = DETAIL_W if lang == "jp" else RIGHT - LEFT
     for piece in (x for item in items for x in item):
         assert text_width(piece, size) <= width, piece
@@ -266,6 +292,51 @@ def test_wrap_keeps_katakana_words():
         330,
     )
     assert not any(l.startswith("ト") or l.endswith("ェン") for l in lines), lines
+
+
+_NO_START_SYMBOLS = ("→", "–", "—", "%", "）")
+
+
+def _assert_arrow_glue(lines):
+    for line in lines:
+        assert not line.startswith(_NO_START_SYMBOLS), lines
+        assert not line.endswith("→"), lines
+
+
+@pytest.mark.parametrize("width", [150, 170, 200, 240])
+def test_wrap_glues_arrows_and_units_en(width):
+    text = "Mesh rate 38.4% → 3.6%. Background removal 2.99 s → 0.5 s."
+    lines = wrap(text, 16, width)
+    assert " ".join(lines) == text
+    _assert_arrow_glue(lines)
+    for line in lines:  # a bare unit never strands at the start of a line
+        assert not re.match(r"(s|m)\b", line), lines
+        assert not re.search(r"\d$", line) or not line.endswith(("2.99", "0.5", "1.5")), lines
+    joined = "\n".join(lines)
+    assert "2.99 s" in joined and "0.5 s" in joined
+
+
+def test_wrap_unit_glue_examples():
+    lines = wrap("Mesh rate 38.4% → 3.6%. Background removal 2.99 s → 0.5 s.", 16, 150)
+    assert "→ 0.5 s." not in lines
+    _assert_arrow_glue(lines)
+    lines = wrap("Mesh rate 38.4% → 3.6%. Background removal 2.99 s → 0.5 s.", 16, 170)
+    assert not any(l.startswith("s ") or l.endswith("2.99") for l in lines), lines
+    lines = wrap("formation: exact count, ≥1.5 m apart.", 16, 120)
+    assert not any(l.endswith("1.5") for l in lines), lines
+
+
+@pytest.mark.parametrize("width", [100, 130, 160])
+def test_wrap_glues_arrows_jp(width):
+    lines = wrap("論点の判定 8〜24秒 → 1.5〜2.5秒", 15, width)
+    _assert_arrow_glue(lines)
+    assert not any(l.startswith("〜") for l in lines), lines
+
+
+def test_wrap_keeps_okurigana_compound():
+    lines = wrap("文字誤り率（CER）44.3% → 31.2%", 15, 120)
+    assert any("文字誤り率" in l for l in lines), lines
+    _assert_arrow_glue(lines)
 
 
 # ---------------------------------------------------------------- what I can do (我が道)

@@ -61,7 +61,7 @@ def text_width(
 # ---------------------------------------------------------------- line wrapping
 
 # Japanese line-breaking (禁則処理): never start a line with these ...
-_NO_START = set("、。，．・：；？！ー）」』】〕〉》｝’”%％,.:;!?)]}…‥々ゝゞぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ")
+_NO_START = set("、。，．・：；？！ー）」』】〕〉》｝’”%％,.:;!?)]}…‥々ゝゞぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ〜")
 # ... and never end a line with these.
 _NO_END = set("（「『【〔〈《｛‘“([{")
 
@@ -123,6 +123,18 @@ _PAIR_COST = {
     ("A", "C"): 25.0, ("A", "K"): 25.0, ("C", "A"): 25.0, ("K", "A"): 25.0,  # Silicon上, AIエージェント
 }
 _DASHES = set("–—")
+# A spaced token starting with one of these never begins a line ("→ 0.5 s", "– Associate").
+_NO_LINE_START = ("→", "–", "—", "%", "％", "）", ")")
+# ... and one ending with these never ends a line ("8〜24秒 →").
+_NO_LINE_END = ("→",)
+# A number and its bare unit stay together: "2.99 s", "1.5 m", "250 ms".
+_UNIT = re.compile(r"^(?:s|ms|m|cm|mm|km|h|min|k|K|M|B|KB|MB|GB|TB|x|px|pt|%|fps|Hz|kHz)[.,;:)]*$")
+# Hiragana that end a word: a break after them is the natural Japanese break.
+# Any other hiragana between kanji is okurigana inside a compound (文字誤り率).
+_PARTICLES = set("はがをにでとのもへやかよ")
+# Counters and units written right after a number: 24秒, 250件, 26.9万, 4つ.
+_UNIT_KANJI = set("秒分件万億倍人年月日回個台機円時つ")
+_SENTENCE_STUB = 12.0
 _CAP_PAIR = 15.0  # English: between two Capitalised words ("Cloud Run")
 BAD_BREAK = 25.0  # a break this costly (split compound, line-initial particle) is worse than an extra line
 # Multi-word names that never break (Japanese and English text alike).
@@ -143,9 +155,13 @@ def _word_core(tok: str, end: bool) -> str:
     return m.group(0) if m else ""
 
 
-def _break_cost(before: str, after: str, spaced: bool) -> float:
+def _break_cost(before: str, after: str, spaced: bool, before_prev: str = "") -> float:
     """Cost of ending a line with token `before` and starting the next with `after`."""
     if spaced:
+        if after.startswith(_NO_LINE_START) or before.endswith(_NO_LINE_END):
+            return _PROHIBIT
+        if re.search(r"\d$", before) and _UNIT.match(after):
+            return _PROHIBIT
         if after[:1] in _DASHES or before[-1:] in _DASHES:
             # a spaced dash binds both sides: "デベロッパー – アソシエイト" stays on one line
             return BAD_BREAK
@@ -158,6 +174,8 @@ def _break_cost(before: str, after: str, spaced: bool) -> float:
     x, y = before[-1], after[0]
     if x in _FREE_AFTER:
         return 0.0
+    if x.isdigit() and y in _UNIT_KANJI:
+        return _PROHIBIT  # 24|秒 would strand the unit
     ky = _kind(y)
     if ky == "H":
         return _PROHIBIT
@@ -167,6 +185,8 @@ def _break_cost(before: str, after: str, spaced: bool) -> float:
         return _BEFORE_BRACKET
     kx = "A" if x in "）」』】〕〉》" else _kind(x)  # a particle after a bracket binds to it
     if kx == "H":
+        if x not in _PARTICLES and ky == "C" and len(before) == 1 and before_prev[-1:] and _kind(before_prev[-1]) == "C":
+            return _PAIR_COST[("C", "C")]  # okurigana inside a compound: 文字誤り|率
         return _AFTER_PARTICLE
     return _PAIR_COST.get((kx, ky), 2.0)
 
@@ -190,10 +210,14 @@ def wrap(text: str, size: float, width: float, *, weight: int = 400, letter_spac
 
     def penalty(j: int) -> float:
         if toks[j - 1] == " " or toks[j] == " ":
-            before = next((t for t in reversed(toks[:j]) if t != " "), "")
+            words = [t for t in toks[:j] if t != " "]
+            before = words[-1] if words else ""
             after = next((t for t in toks[j:] if t != " "), "")
-            return _break_cost(before, after, True)
-        return _break_cost(toks[j - 1], toks[j], False)
+            cost = _break_cost(before, after, True)
+            if len(words) >= 2 and words[-2].endswith(".") and len(before) <= 3 and before[:1].isupper():
+                cost += _SENTENCE_STUB  # "gate. In / production": keep a short sentence opener with its sentence
+            return cost
+        return _break_cost(toks[j - 1], toks[j], False, toks[j - 2] if j >= 2 else "")
 
     INF = (10**9, 10**9, 0.0)
     best: list[tuple[int, int, float]] = [INF] * (n + 1)
@@ -215,7 +239,7 @@ def wrap(text: str, size: float, width: float, *, weight: int = 400, letter_spac
                 cost = 4 * max(0.0, (0.5 * width - w) / size) ** 2
             else:
                 pen = penalty(j)
-                bad = int(pen >= BAD_BREAK)
+                bad = 10 if pen >= _PROHIBIT else int(pen >= BAD_BREAK)  # forbidden breaks only as a last resort
                 cost = ((width - w) / size) ** 2 + pen
             cand = (best[j][0] + bad, best[j][1] + 1, best[j][2] + cost)
             if cand < best[i]:

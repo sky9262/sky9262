@@ -66,6 +66,9 @@ MONO = 'font-family="Shrine Mono"'
 MONO_W = 0.6
 EDGE = "#6b4420"  # board outline, darker than the grain
 STAMP = P["ink-red"]
+# A deeper shade of ink-red for the small red text (subtitle, NDA line) so it reads
+# as clearly on the wood as the dark ink of the details.
+INK_RED_DEEP = "#8f2416"
 TEAL = "#0f3a40"
 
 PLAQUE_CSS = """
@@ -158,22 +161,37 @@ def _title_lines(text: str) -> tuple[float, list[str]]:
         if len(lines) <= 2 and _fits(lines, size, TITLE_W, weight=700):
             return size, lines
     size = TITLE_SIZES[-1]
-    return size, wrap(text, size, TITLE_W, weight=700)
+    lines = wrap(text, size, TITLE_W, weight=700)
+    _guard(lines, size, TITLE_W, "title", weight=700)
+    return size, lines
+
+
+def _guard(lines: list[str], size: float, width: float, what: str, *, weight: int = 400, ls: float = 0) -> None:
+    """Fail the build when a wrapped line still overflows its column (never render it clipped)."""
+    for line in lines:
+        w = text_width(line, size, weight=weight, letter_spacing=ls)
+        if w > width:
+            raise ValueError(f"{what} line overflows ({w:.1f} > {width:g}): {line!r}")
 
 
 def detail_lines(p: Plaque, lang: Lang) -> tuple[float, list[list[str]]]:
     """(font size, items): the detail text wrapped to the padded width, never truncated.
 
     JP lines are standalone statements, so each is an item with a diamond marker.
-    EN lines are one or two sentences broken at phrase boundaries by the author, so
-    they stay as written in a single unmarked paragraph (wrapped only if too wide).
+    EN lines are one or two sentences, so they are rejoined into one unmarked
+    paragraph and wrapped to the full width. Raises ValueError on any overflow.
     """
     lines = p.lines(lang).split("\n")
+    size = DETAIL_SIZE[lang]
     if lang == "en":
-        size = DETAIL_SIZE["en"]
-        return size, [[x for line in lines for x in wrap(line, size, INNER_W)]]
-    size = DETAIL_SIZE["jp"]
-    return size, [wrap(line, size, DETAIL_W) for line in lines]
+        items = [wrap(" ".join(lines), size, INNER_W)]
+        width = INNER_W
+    else:
+        items = [wrap(line, size, DETAIL_W) for line in lines]
+        width = DETAIL_W
+    for item in items:
+        _guard(item, size, width, f"{p.id}/{lang} detail")
+    return size, items
 
 
 def _stamp_half(p: Plaque, stars: int | None, forks: int | None) -> float:
@@ -203,9 +221,11 @@ def _layout(p: Plaque, lang: Lang, stars: int | None = None, forks: int | None =
     size, title = _title_lines(p.title(lang))
     sub_ls = 1.0 if lang == "en" else 0.5  # the subtitle is JP on EN plaques
     sub = wrap(p.subtitle(lang), SUB_SIZE, TITLE_W, letter_spacing=sub_ls)
+    _guard(sub, SUB_SIZE, TITLE_W, f"{p.id}/{lang} subtitle", ls=sub_ls)
     _, items = detail_lines(p, lang)
     nda_w = INNER_W - 19
     nda = wrap(NDA(lang), 14, nda_w) if p.kind == "client" else []
+    _guard(nda, 14, nda_w, f"{p.id}/{lang} NDA")
     half = _stamp_half(p, stars, forks)
     rows = _tag_rows(p.tags, (RIGHT - 2 * half - 8) - LEFT)
     lay = _Layout(size, title, sub, sub_ls, items, nda, rows, half)
@@ -630,7 +650,7 @@ def _face(p: Plaque, lang: Lang, lay: _Layout, h: int, motif: str, stars: int | 
         out.append(f'<text x="{RIGHT}" y="116" text-anchor="end" {MONO} font-size="14" fill="{P["ink-b"]}">{esc(p.years)}</text>')
 
     # title row: title block on the left, motif window on the right
-    row_top = 124 + ROW_GAP + extra * 0.2
+    row_top = 124 + ROW_GAP + extra * 0.28
     row_h = lay.parts["row_h"]
     y = row_top + (row_h - lay.parts["title_h"]) / 2 + lay.title_size * 0.82
     ts = lay.title_size
@@ -642,13 +662,13 @@ def _face(p: Plaque, lang: Lang, lay: _Layout, h: int, motif: str, stars: int | 
     y += (len(lay.title) - 1) * ts * 1.2 + 13 + SUB_SIZE * 0.85
     for i, t in enumerate(lay.sub):
         out.append(
-            f'<text x="{LEFT}" y="{_g(y + i * 20)}" {SERIF} font-size="{SUB_SIZE}" fill="{red}" '
+            f'<text x="{LEFT}" y="{_g(y + i * 20)}" {SERIF} font-size="{SUB_SIZE}" fill="{INK_RED_DEEP}" '
             f'letter-spacing="{_g(lay.sub_ls)}">{esc(t)}</text>'
         )
     out.append(_window(motif, MOTIF_CX, row_top + row_h / 2))
 
     # divider: a fading rule with a small diamond
-    dy = row_top + row_h + DIV_ABOVE + extra * 0.15
+    dy = row_top + row_h + DIV_ABOVE + extra * 0.2
     out.append(
         f'<rect x="{LEFT}" y="{_g(dy - 0.6)}" width="{INNER_W}" height="1.2" fill="url(#divider)"/>'
         f'<path d="M{CX},{_g(dy - 4)} l4,4 l-4,4 l-4,-4 z" fill="{red}"/>'
@@ -656,7 +676,7 @@ def _face(p: Plaque, lang: Lang, lay: _Layout, h: int, motif: str, stars: int | 
 
     # details: JP items get a diamond marker and a hanging indent; the EN paragraph runs full width
     size, lh = DETAIL_SIZE[lang], DETAIL_LH[lang]
-    y = dy + DIV_BELOW + extra * 0.2 + size * 0.85
+    y = dy + DIV_BELOW + extra * 0.06 + size * 0.85
     text = []
     marked = lang == "jp"
     tx = DETAIL_X if marked else LEFT
@@ -674,10 +694,10 @@ def _face(p: Plaque, lang: Lang, lay: _Layout, h: int, motif: str, stars: int | 
         y += NDA_GAP + 14
         text.append(
             f'<path d="M{LEFT},{_g(y - 21)} H{RIGHT}" stroke="{red}" stroke-opacity="0.35" stroke-dasharray="2 4"/>'
-            + icon("lock", LEFT, y - 12.5, 14, red)
+            + icon("lock", LEFT, y - 12.5, 14, INK_RED_DEEP)
         )
         for k, line in enumerate(lay.nda):
-            text.append(f'<text x="{LEFT + 19}" y="{_g(y + k * 20)}" {SERIF} font-size="14" fill="{red}">{esc(line)}</text>')
+            text.append(f'<text x="{LEFT + 19}" y="{_g(y + k * 20)}" {SERIF} font-size="14" fill="{INK_RED_DEEP}">{esc(line)}</text>')
         y += (len(lay.nda) - 1) * 20
     out.append(f'<g filter="url(#carve)">{"".join(text)}</g>')
 
