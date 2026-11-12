@@ -3,8 +3,9 @@
   * Torii path (千本鳥居): one vermilion gate per week receding along a stone path,
     height 8 + 72 * week / max(1, max_week) and opacity scaled the same way. The
     gates rise one after another on load, fox-fire orbs (狐火) float over the busiest
-    weeks, a spirit light walks the path and a stone lantern (or the kitsune sprite,
-    Task 14) waits at the near end. Desktop 1200x300 (53 weeks), phone 600x420 (26).
+    weeks, a spirit light walks the path and the animated kitsune guardian (a stepped
+    sprite from assets/common/kitsune-sheet.png; a stone lantern without it) waits at
+    the near end. Desktop 1200x300 (53 weeks), phone 600x420 (26).
   * Feed (今日の参拝): up to five omikuji paper slips tied to the shimenawa, each with
     a verb, fit(repo, 28) and ago(). Desktop: portrait slips in a row; phone: landscape
     slips hung one below another on red cords. When fewer than 3 events are given,
@@ -25,7 +26,6 @@ prebuilt runtime fonts (labels.py + printable ASCII). Stdlib only.
 """
 from __future__ import annotations
 
-import base64
 import math
 import random
 from datetime import date, datetime, timedelta, timezone
@@ -37,6 +37,7 @@ from ..icons import icon
 from ..labels import LABELS
 from ..metrics import text_width, wrap
 from ..palette import PALETTE as P
+from ..sprite import png_size, sprite_parts
 from ..svg import MOTION_CSS, document, embed_fonts, esc, heading_defs, lantern, petal_def, petals, rope, rope_y, section_heading
 from . import achievement as ach
 
@@ -340,7 +341,10 @@ def render_torii_path(data: Data, lang: Lang, layout: Layout, fonts, kitsune_png
         x, by, w = geo[peak]
         ty = by - (8 + 72 * weeks[peak] / top) - 30
         tw = text_width(L("torii_peak", lang) + " ", sz["peak"]) + text_width(fmt(weeks[peak]), sz["peak"], weight=700)
-        tx = min(max(x, tw / 2 + 14), cfg["end_x"] - 40 - tw / 2)
+        right = cfg["end_x"] - 40
+        if kitsune_png:
+            right = min(right, kitsune_box(layout)[0] + 4)
+        tx = min(max(x, tw / 2 + 14), right - tw / 2)
         tag = (
             f'<g class="rise d3"><text x="{_g(tx)}" y="{_g(ty)}" text-anchor="middle" {SERIF} font-size="{sz["peak"]}" '
             f'fill="{P["text-soft-a"]}">{esc(L("torii_peak", lang))} '
@@ -348,19 +352,13 @@ def render_torii_path(data: Data, lang: Lang, layout: Layout, fonts, kitsune_png
             f'<path d="M{_g(x)},{_g(ty + 6)} v8" stroke="{P["lantern-gold"]}" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="2 2"/></g>'
         )
 
-    # near end: the kitsune sprite (Task 14) or a stone lantern
+    # near end: the kitsune guardian sprite or a stone lantern
     ex, ey = cfg["end_x"], geo[-1][1]
-    if kitsune_png:
-        size = 96 if layout == "desktop" else 84
-        b64 = base64.b64encode(kitsune_png).decode("ascii")
-        href = f"data:image/png;base64,{b64}"
-        end = (
-            f'<ellipse cx="{_g(ex)}" cy="{_g(ey - 30)}" rx="60" ry="46" fill="url(#lanternGlow)" class="lglow" opacity="0.6"/>'
-            f'<image class="kitsune" x="{_g(ex - size / 2)}" y="{_g(ey - size + 6)}" width="{size}" height="{size}" '
-            f'preserveAspectRatio="xMidYMax meet" href="{href}" xlink:href="{href}"/>'
-        )
+    kit = _kitsune(kitsune_png, layout) if kitsune_png else None
+    if kit:
+        kit_defs, kit_css, end = kit
     else:
-        end = lantern(ex, ey - 60, 0.8)
+        kit_defs, kit_css, end = "", "", lantern(ex, ey - 60, 0.8)
     now_w = text_width(L("torii_now", lang), sz["now"], weight=700)
     now_x = min(ex, W - 16 - now_w / 2)
     now_label = (
@@ -420,7 +418,44 @@ def render_torii_path(data: Data, lang: Lang, layout: Layout, fonts, kitsune_png
         '<linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3550"/>'
         '<stop offset="1" stop-color="#1c1830"/></linearGradient>'
     )
-    return _card(W, H, scene, title=title, css=TORII_CSS + walk_css, defs=defs, fonts=fonts)
+    return _card(W, H, scene, title=title, css=TORII_CSS + walk_css + kit_css, defs=defs + kit_defs, fonts=fonts)
+
+
+KITSUNE_FPS = 6
+KITSUNE_SIZE = {"desktop": 132, "phone": 112}
+
+
+def kitsune_box(layout: Layout) -> tuple[float, float, float, float]:
+    """(x, y, w, h) of the guardian's frame: at the near end of the path, feet on the
+    flagstones, kept inside the card's right edge."""
+    cfg, s = TORII[layout], KITSUNE_SIZE[layout]
+    cx = min(cfg["end_x"], cfg["w"] - 8 - s / 2)
+    return cx - s / 2, cfg["base"] + 8 - s, s, s
+
+
+def _kitsune(png: bytes, layout: Layout) -> tuple[str, str, str] | None:
+    """(defs, css, body) of the animated guardian, from a one-row sheet of square
+    frames (assets/common/kitsune-sheet.png); None if the bytes are not such a PNG."""
+    try:
+        w, h = png_size(png)
+    except ValueError:
+        return None
+    if not h or w % h:
+        return None
+    defs, css, body = sprite_parts(png, w // h, 1, h, KITSUNE_FPS, uid="kit")
+    x, y, s, _ = kitsune_box(layout)
+    # cyan fox-fire glow where the sheet's foxfire floats (upper right of the frame)
+    glow = (
+        f'<circle cx="{_g(x + s * 0.7)}" cy="{_g(y + s * 0.24)}" r="{_g(s * 0.22)}" fill="url(#cyanOrb)" '
+        f'opacity="0.35" class="lglow"/>'
+        f'<ellipse cx="{_g(x + s * 0.4)}" cy="{_g(y + s * 0.97)}" rx="{_g(s * 0.36)}" ry="{_g(s * 0.05)}" '
+        f'fill="#0b0a18" opacity="0.45"/>'
+    )
+    body = (
+        f'<g class="rise d3">{glow}<g transform="translate({_g(x)},{_g(y)}) scale({_g(s / h)})">'
+        f"{body}</g></g>"
+    )
+    return defs, css, body
 
 
 def _ridges(w: float, cfg: dict) -> str:

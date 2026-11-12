@@ -24,7 +24,9 @@ ALT: dict[str, dict[str, str]] = {
     "hours": {"jp": "時間帯別のコミット数", "en": "Commits by hour of day"},
     "connect": {"jp": "ご縁: 連絡先", "en": "Connect with me"},
     "toggle": {"jp": "English版を開く", "en": "Switch to Japanese"},
+    "divider": {"jp": "提灯を持って歩く狐（区切り）", "en": "A kitsune walking with a lantern (section divider)"},
 }
+DIVIDER = "assets/common/walker-divider.svg"
 LINK_ALT = {
     "jp": {"gmail": "Gmailで連絡", "linkedin": "LinkedInを開く", "x": "Xを開く",
            "instagram": "Instagramを開く", "portfolio": "ポートフォリオを開く",
@@ -82,6 +84,10 @@ def _centered(inner: str) -> str:
     return f'<p align="center">\n{inner}\n</p>'
 
 
+def _divider(lang: str) -> str:
+    return _centered(f'<img src="{DIVIDER}" width="100%" alt="{ALT["divider"][lang]}">')
+
+
 def render_readme(lang: Lang, output_branch: str) -> str:
     other = FILE["en" if lang == "jp" else "jp"]
     blocks: list[str] = []
@@ -93,6 +99,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     )
     # 2. hero
     blocks.append(_picture("hero", ALT["hero"][lang], lang))
+    blocks.append(_divider(lang))
     # 3. projects
     blocks.append(_heading(SECTION["projects"](lang)))
     items = []
@@ -106,6 +113,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     # 4-5. can-do, stack (cards carry their own headings)
     blocks.append(_picture("cando", ALT["cando"][lang], lang))
     blocks.append(_picture("stack", ALT["stack"][lang], lang))
+    blocks.append(_divider(lang))
     # 6. activity
     blocks.append(_heading(SECTION["activity"](lang)))
     blocks.append(_picture("torii", ALT["torii"][lang], lang, live_branch=output_branch))
@@ -132,6 +140,8 @@ def render_readme(lang: Lang, output_branch: str) -> str:
         for lid, _label, url in LINKS
     ]
     blocks.append(_centered("\n".join(buttons)))
+    # footer: the walker, then the sign-off
+    blocks.append(_divider(lang))
     # 8. sign-off
     blocks.append(f'<p align="center"><sub>{CONNECT["signoff"](lang)}</sub></p>')
     return "\n\n".join(blocks) + "\n"

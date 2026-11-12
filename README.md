@@ -2,6 +2,10 @@
 
 <picture><source media="(max-width: 600px)" srcset="assets/jp/hero-phone.svg"><img src="assets/jp/hero-desktop.svg" width="100%" alt="夜の神社 アカシュ・クマァ（Akash Kumar）のプロフィール"></picture>
 
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="提灯を持って歩く狐（区切り）">
+</p>
+
 <h2 align="center">絵馬 · プロジェクト</h2>
 
 <p align="center">
@@ -22,6 +26,10 @@
 <picture><source media="(max-width: 600px)" srcset="assets/jp/cando-phone.svg"><img src="assets/jp/cando-desktop.svg" width="100%" alt="我が道: 私にできること"></picture>
 
 <picture><source media="(max-width: 600px)" srcset="assets/jp/stack-phone.svg"><img src="assets/jp/stack-desktop.svg" width="100%" alt="道具: 技術スタック"></picture>
+
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="提灯を持って歩く狐（区切り）">
+</p>
 
 <h2 align="center">千本鳥居 · 活動</h2>
 
@@ -71,6 +79,10 @@
 <a href="https://sky9262.github.io"><img src="assets/common/btn-portfolio.svg" alt="ポートフォリオを開く"></a>
 <a href="https://huggingface.co/sky9262"><img src="assets/common/btn-huggingface.svg" alt="Hugging Faceを開く"></a>
 <a href="https://tryhackme.com/p/sky9262"><img src="assets/common/btn-tryhackme.svg" alt="TryHackMeを開く"></a>
+</p>
+
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="提灯を持って歩く狐（区切り）">
 </p>
 
 <p align="center"><sub>ご参拝いただき、ありがとうございました。</sub></p>

@@ -2,6 +2,10 @@
 
 <picture><source media="(max-width: 600px)" srcset="assets/en/hero-phone.svg"><img src="assets/en/hero-desktop.svg" width="100%" alt="Akash Kumar, AI and Security Engineer: night shrine profile banner"></picture>
 
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="A kitsune walking with a lantern (section divider)">
+</p>
+
 <h2 align="center">Projects · 絵馬</h2>
 
 <p align="center">
@@ -22,6 +26,10 @@
 <picture><source media="(max-width: 600px)" srcset="assets/en/cando-phone.svg"><img src="assets/en/cando-desktop.svg" width="100%" alt="What I can do"></picture>
 
 <picture><source media="(max-width: 600px)" srcset="assets/en/stack-phone.svg"><img src="assets/en/stack-desktop.svg" width="100%" alt="Tech stack"></picture>
+
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="A kitsune walking with a lantern (section divider)">
+</p>
 
 <h2 align="center">Activity · 千本鳥居</h2>
 
@@ -71,6 +79,10 @@
 <a href="https://sky9262.github.io"><img src="assets/common/btn-portfolio.svg" alt="Portfolio link"></a>
 <a href="https://huggingface.co/sky9262"><img src="assets/common/btn-huggingface.svg" alt="Hugging Face link"></a>
 <a href="https://tryhackme.com/p/sky9262"><img src="assets/common/btn-tryhackme.svg" alt="TryHackMe link"></a>
+</p>
+
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="A kitsune walking with a lantern (section divider)">
 </p>
 
 <p align="center"><sub>Thanks for visiting the shrine.</sub></p>

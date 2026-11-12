@@ -12,6 +12,7 @@ from scripts.shrine.cards.achievement import render_achievement
 from scripts.shrine.cards.button import render_button, render_toggle
 from scripts.shrine.cards.cando import render_cando
 from scripts.shrine.cards.connect import render_connect
+from scripts.shrine.cards.divider import render_divider
 from scripts.shrine.cards.hero import render_hero
 from scripts.shrine.cards.plaque import render_plaque
 from scripts.shrine.cards.stack import render_stack
@@ -67,6 +68,8 @@ def build(output_branch: str) -> None:
         _write(ROOT / FILE[lang], render_readme(lang, output_branch))
     for lid, _label, _url in content.LINKS:
         _write(assets / "common" / f"btn-{lid}.svg", render_button(lid, fonts))
+    walker = ART / "walker-sheet.png"  # made by python -m scripts.build.sprites
+    _write(assets / "common" / "walker-divider.svg", render_divider(walker.read_bytes()))
 
 
 def main() -> None:

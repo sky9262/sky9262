@@ -107,6 +107,27 @@ def test_assets_budget():
         assert f.stat().st_size <= limit * 1024, f"{rel}: {f.stat().st_size} B > {limit} KB"
 
 
+DIVIDER = "assets/common/walker-divider.svg"
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_walker_divider(lang):
+    """The walking kitsune strip sits between hero/projects, stack/activity and in the footer."""
+    from scripts.build.readme import render_readme
+    from scripts.shrine.content import SECTION
+
+    markers = ("hero-desktop.svg", SECTION["projects"](lang), "stack-desktop.svg",
+               SECTION["activity"](lang), "btn-gmail.svg")
+
+    for text in (render_readme(lang, "output-test"), _read(lang)):
+        assert text.count(f'<img src="{DIVIDER}" width="100%"') == 3
+        pos = [m.start() for m in re.finditer(re.escape(DIVIDER), text)]
+        hero, projects, stack, activity, connect = (text.index(m) for m in markers)
+        assert hero < pos[0] < projects
+        assert stack < pos[1] < activity
+        assert connect < pos[2]
+
+
 @pytest.mark.network
 def test_github_renders_picture():
     r = subprocess.run(

@@ -15,6 +15,7 @@ from scripts.shrine.fonts import FONT_DIR, RuntimeFonts
 from scripts.shrine.svg import visible_strings
 
 FIX = Path(__file__).parent / "fixtures" / "github"
+ROOT_ASSETS = Path(__file__).resolve().parent.parent / "assets" / "common"
 NOW = datetime(2026, 11, 12, 0, 0, tzinfo=timezone.utc)
 LANGS = ("jp", "en")
 LAYOUTS = ("desktop", "phone")
@@ -258,6 +259,31 @@ def test_torii_kitsune(data, rfonts):
         assert_no_external(svg)
         assert "data:image/png;base64," in svg
     assert "data:image/png" not in live.render_torii_path(data, "jp", "desktop", rfonts)
+
+
+def test_torii_kitsune_animated(data, rfonts):
+    """The guardian sheet (8 frames in one row) is stepped through and sits clear of the labels."""
+    from test_sprites import synthetic_sheet
+
+    sheet = synthetic_sheet(8, 1, 160)
+    for layout in LAYOUTS:
+        for lang in LANGS:
+            svg = live.render_torii_path(data, lang, layout, rfonts, kitsune_png=sheet)
+            _check(svg, layout)
+            assert "steps(8)" in svg
+        x, y, w, h = live.kitsune_box(layout)
+        cfg, sz = live.TORII[layout], live.TORII_SIZES[layout]
+        assert x + w <= cfg["w"] - 8 and y + h <= cfg["base"] + 26  # on the path, inside the card
+        assert y + h <= live.MONTH_Y[layout] - sz["now"]  # above the "this week" label
+        if layout == "desktop":
+            assert y >= 100 + 8  # below the year total and its label (right column)
+        else:
+            assert y >= 184 + 8  # below the centred year total
+    # the real sheet fits the torii card budget
+    real = ROOT_ASSETS / "kitsune-sheet.png"
+    if real.exists():
+        for layout in LAYOUTS:
+            assert_under(live.render_torii_path(data, "jp", layout, rfonts, kitsune_png=real.read_bytes()), 500)
 
 
 @pytest.mark.parametrize(

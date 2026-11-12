@@ -2,3 +2,5 @@ fonttools==4.66.1
 brotli
 pytest
 playwright
+pillow
+numpy
