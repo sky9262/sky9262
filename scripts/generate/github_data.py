@@ -99,8 +99,8 @@ class Data:
     commit_times: list[datetime]
     live: dict[str, tuple[int, int]]
     private_repo_names: list[str]
-    # own public non-fork repos as (full_name, pushed_at UTC), newest first; the feed
-    # backfills from these when few public events remain after filtering
+    # own public non-fork repos as (full_name, pushed_at UTC), newest first. Since
+    # owner edit 3 no card renders these; kept as data, never shown
     recent_repos: list[tuple[str, datetime]] = field(default_factory=list)
 
 
@@ -329,23 +329,6 @@ def fetch(token: str, login: str = "sky9262", now: datetime | None = None) -> Da
 
 
 # ---------------------------------------------------------------- helpers
-
-
-def streaks(days: list[tuple[date, int]]) -> tuple[int, int]:
-    """(current, longest) run of days with contributions. A zero *today* does not
-    break the current streak (the day isn't over yet)."""
-    counts = [c for _, c in sorted(days)]
-    longest = run = 0
-    for c in counts:
-        run = run + 1 if c > 0 else 0
-        longest = max(longest, run)
-    tail = counts[:-1] if counts and counts[-1] == 0 else counts
-    current = 0
-    for c in reversed(tail):
-        if c <= 0:
-            break
-        current += 1
-    return current, longest
 
 
 def hour_buckets(times: list[datetime]) -> dict[str, int]:

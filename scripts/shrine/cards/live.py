@@ -6,20 +6,24 @@
     weeks, a spirit light walks the path and the animated kitsune guardian (a stepped
     sprite from assets/common/kitsune-sheet.png; a stone lantern without it) waits at
     the near end. Desktop 1200x300 (53 weeks), phone 600x420 (26).
-  * Feed (今日の参拝): up to five omikuji paper slips tied to the shimenawa, each with
-    a verb, fit(repo, 28) and ago(). Desktop: portrait slips in a row; phone: landscape
-    slips hung one below another on red cords. When fewer than 3 events are given,
-    the owner's recently pushed public repos fill the row as 更新 / "Updated".
+  * This week (今週の参拝, owner edit 3): seven omikuji tied to the shimenawa, one per
+    calendar day (oldest left, today right) with the weekday, date, contribution
+    count and a fortune seal by tier (0 休, 1-9 小吉, 10-29 中吉, 30-49 吉, 50+ 大吉);
+    the busiest day glows lantern-gold, today has a gold band. Desktop: one row of 7;
+    phone: 4 + 3 on two ropes. Written to feed-{desktop,phone}.svg.
   * Stat plaques: small wooden votive tablets (same family as the achievements) with
-    an emblem in a lacquered window and a big carved number. 410x200.
+    an emblem in a lacquered window and a big carved number: contributions this year,
+    the last 30 days (with the daily average), the busiest day (with its date) and
+    stars. 410x200.
   * Language ensō (円相): a tapered brush circle split by the top 5 languages + other,
     painted on with a mask on load, with a legend. 410x410.
   * Shrine hours: a moon dial; four JST buckets (朝/昼/夕/夜) as petals of light whose
     length scales with the public-commit count. 410x410.
 
-Privacy: the cards render only what they are given. render_feed never filters
-events itself (the generator passes already-filtered public events) and nothing
-here reads Data.private_repo_names.
+Privacy: the cards render only what they are given and show no repo names from
+activity at all (owner edit 3): the week card and the plaques read the anonymous
+contribution calendar; nothing here reads Data.events, Data.recent_repos or
+Data.private_repo_names.
 
 Shown as <img>: CSS keyframes only, no hover, no JS. Every glyph comes from the
 prebuilt runtime fonts (labels.py + printable ASCII). Stdlib only.
@@ -31,7 +35,7 @@ import random
 from datetime import date, datetime, timedelta, timezone
 from typing import Literal
 
-from ...generate.github_data import Data, Event, hour_buckets, streaks
+from ...generate.github_data import Data, hour_buckets
 from ..content import Lang
 from ..icons import icon
 from ..labels import LABELS
@@ -42,15 +46,11 @@ from ..svg import MOTION_CSS, document, embed_fonts, esc, heading_defs, lantern,
 from . import achievement as ach
 
 Layout = Literal["desktop", "phone"]
-StatKind = Literal["contrib", "streak", "stars", "followers"]
+StatKind = Literal["contrib", "month", "peak", "stars"]
 
 SERIF = 'font-family="Shrine Serif"'
 MONO = 'font-family="Shrine Mono"'
 RX = 16
-FEED_MAX = 5
-BACKFILL_BELOW = 3
-BACKFILL_WINDOW = timedelta(days=365)
-REPO_CHARS = 28
 
 
 def _g(v: float) -> str:
@@ -68,19 +68,6 @@ def fmt(n: int) -> str:
 def fit(text: str, n: int) -> str:
     """`text` cut to at most n characters, the last one an ellipsis when cut."""
     return text if len(text) <= n else text[: n - 1] + "…"
-
-
-def ago(at: datetime, now: datetime, lang: Lang) -> str:
-    if at.tzinfo is None:
-        at = at.replace(tzinfo=timezone.utc)
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
-    secs = (now - at).total_seconds()
-    if secs < 3600:
-        return L("ago_now", lang)
-    if secs < 48 * 3600:
-        return L("ago_hours", lang).format(n=int(secs // 3600))
-    return L("ago_days", lang).format(n=int(secs // 86400))
 
 
 # ---------------------------------------------------------------- shared scenery
@@ -527,103 +514,58 @@ def _num_glow() -> str:
     )
 
 
-# ---------------------------------------------------------------- feed (今日の参拝)
+# ---------------------------------------------------------------- this week (今週の参拝)
 
 
-VERB_ICON = {"push": "torii", "create": "globe", "release": "bell", "star": "star", "fork": "fork", "updated": "torii"}
+TIER_LIMITS = (1, 10, 30, 50)  # 0 → 休, 1-9 → 小吉, 10-29 → 中吉, 30-49 → 吉, 50+ → 大吉
 
 
-def _feed_items(events: list[Event], now: datetime, recent_repos) -> list[tuple[str, str, datetime]]:
-    """Newest first, one slip per (kind, repo); backfilled from recent repos when
-    fewer than BACKFILL_BELOW events are given. Renders exactly what it is given."""
-    items: list[tuple[str, str, datetime]] = []
-    seen: set[tuple[str, str]] = set()
-    for e in sorted(events, key=lambda e: e.at, reverse=True):
-        if (e.kind, e.repo) in seen:
-            continue
-        seen.add((e.kind, e.repo))
-        items.append((e.kind, e.repo, e.at))
-    if len(items) < BACKFILL_BELOW:
-        shown = {r.lower() for _, r, _ in items}
-        for name, at in recent_repos:
-            if name.lower() in shown or now - at > BACKFILL_WINDOW:
-                continue
-            shown.add(name.lower())
-            items.append(("updated", name, at))
-    items.sort(key=lambda x: x[2], reverse=True)
-    return items[:FEED_MAX]
+def fortune_tier(n: int) -> str:
+    """The omikuji fortune for a day's contribution count. Kind by design: a quiet
+    day is a day of rest (休), never 凶."""
+    tiers = L("fortune_tiers", "jp").split(",")  # 休,小吉,中吉,吉,大吉
+    return tiers[sum(1 for t in TIER_LIMITS if n >= t)]
 
 
-def _repo_lines(repo: str, per_line: int, max_lines: int) -> list[tuple[str, bool]]:
-    """fit(repo, 28) broken into (text, is_owner) lines of at most per_line characters:
-    the owner and slash on their own line when they fit, then the name, broken after
-    '-', '_' or '.' where possible."""
-    s = fit(repo, REPO_CHARS)
-    out: list[tuple[str, bool]] = []
-    owner, slash, name = s.partition("/")
-    if slash and len(owner) + 1 <= per_line:
-        out.append((owner + "/", True))
-        rest = name
-    else:
-        rest = s
-    while rest:
-        if len(rest) <= per_line:
-            out.append((rest, False))
-            break
-        cut = max((rest.rfind(c, 0, per_line) for c in "-_./"), default=-1)
-        cut = cut + 1 if cut >= per_line // 2 else per_line
-        out.append((rest[:cut], False))
-        rest = rest[cut:]
-    if len(out) > max_lines:  # cannot happen for 28 characters; keep the end visible
-        out = out[: max_lines - 1] + [("".join(t for t, _ in out[max_lines - 1:]), False)]
-    return out
+def _week_dates(now: datetime) -> list[date]:
+    end = now.astimezone(timezone.utc).date() if now.tzinfo else now.date()
+    return [end - timedelta(days=6 - k) for k in range(7)]
 
 
-FEED_CSS = """
+def week_counts(days: list[tuple[date, int]], now: datetime) -> list[int]:
+    """Contributions of the last 7 calendar days, oldest first, today last; days the
+    calendar does not cover read 0."""
+    m = dict(days)
+    return [m.get(d, 0) for d in _week_dates(now)]
+
+
+WEEK_CSS = """
 .slipsway{transform-box:fill-box;transform-origin:50% 0;animation:sway 5s ease-in-out infinite}
-.chain{transform-box:view-box;animation:chain 6s ease-in-out infinite}
-@keyframes chain{0%,100%{transform:rotate(-.5deg)}50%{transform:rotate(.5deg)}}
-.flutter{transform-box:fill-box;transform-origin:50% 0;animation:flutter 3.6s ease-in-out infinite}
-@keyframes flutter{0%,100%{transform:skewX(0)}50%{transform:skewX(-2deg)}}
+.peakday{animation:breathe 4s ease-in-out infinite}
 """
 
 
-def _feed_defs(w: float, h: float) -> str:
+def _week_defs(w: float, h: float) -> str:
     return _defs(w, h) + (
         '<linearGradient id="washi" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#fffaf0"/>'
         '<stop offset="0.6" stop-color="#f6ead3"/><stop offset="1" stop-color="#ead8b4"/></linearGradient>'
-        f'<linearGradient id="band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f05a3e"/>'
-        f'<stop offset="1" stop-color="#c2331e"/></linearGradient>'
-        f'<linearGradient id="bandV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c2331e"/>'
-        f'<stop offset="1" stop-color="#ec5236"/></linearGradient>'
+        '<linearGradient id="band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f05a3e"/>'
+        '<stop offset="1" stop-color="#c2331e"/></linearGradient>'
+        f'<linearGradient id="goldBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a3"/>'
+        f'<stop offset="1" stop-color="#e9a945"/></linearGradient>'
         '<linearGradient id="crease" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a5a30" stop-opacity="0"/>'
         '<stop offset="0.45" stop-color="#7a5a30" stop-opacity="0.13"/><stop offset="0.55" stop-color="#fff" stop-opacity="0.5"/>'
         '<stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+        f'<radialGradient id="peakGlow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="{P["lantern-gold"]}" stop-opacity="0.55"/>'
+        f'<stop offset="0.6" stop-color="{P["lantern-glow-a"]}" stop-opacity="0.18"/>'
+        f'<stop offset="1" stop-color="{P["lantern-glow-a"]}" stop-opacity="0"/></radialGradient>'
         '<filter id="paper" x="0" y="0" width="100%" height="100%">'
         '<feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/>'
         '<feColorMatrix in="n" type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.32  0 0 0 0 0.16  0 0 0 0.10 0"/>'
         '<feComposite in2="SourceGraphic" operator="in"/></filter>'
         '<filter id="stampInk" x="-10%" y="-10%" width="120%" height="120%">'
         '<feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9" result="n"/>'
-        '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/></filter>'
-    )
-
-
-def _fortune(i: int) -> str:
-    f = L("fortunes", "jp").split(",")
-    return f[(i * 3 + 1) % len(f)] if i else f[0]
-
-
-def _stamp(x: float, y: float, r: float, i: int) -> str:
-    """Decorative omikuji fortune seal (大吉, 吉, ...), rotated a little."""
-    t = _fortune(i)
-    fs = r * (1.0 if len(t) == 1 else 0.78)
-    return (
-        f'<g transform="translate({_g(x)},{_g(y)}) rotate({-10 + (i * 7) % 18})" filter="url(#stampInk)" opacity="0.82">'
-        f'<circle r="{_g(r)}" fill="none" stroke="{P["vermilion"]}" stroke-width="1.6"/>'
-        f'<circle r="{_g(r - 3)}" fill="none" stroke="{P["vermilion"]}" stroke-width="0.6"/>'
-        f'<text class="deco" y="{_g(fs * 0.36)}" text-anchor="middle" {SERIF} font-size="{_g(fs)}" font-weight="700" '
-        f'fill="{P["vermilion"]}" letter-spacing="-0.5">{esc(t)}</text></g>'
+        '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.4" xChannelSelector="R" yChannelSelector="G"/></filter>'
     )
 
 
@@ -636,219 +578,145 @@ def _knot(x: float, y: float) -> str:
     )
 
 
-# desktop: portrait slips in a row
-SLIP_W, SLIP_H, SLIP_GAP = 200, 228, 24
-SLIP_NECK = 16
-FEED_D = dict(w=1200, rope_y=86, head_y=50, verb=18, repo=18, owner=18, ago=18, empty=19)
-# phone: landscape slips one below another
-PSLIP_W, PSLIP_H, PSLIP_GAP, PBAND = 540, 104, 26, 140
-FEED_P = dict(w=600, rope_y=92, head_y=56, verb=20, repo=20, owner=20, ago=20, empty=22)
+def _fortune_stamp(x: float, y: float, r: float, tier: str, size: float, k: int) -> str:
+    rest = tier == fortune_tier(0)
+    ink = "#6f6a8f" if rest else P["vermilion"]
+    fs = size * (1.25 if len(tier) == 1 else 1.0)
+    return (
+        f'<g transform="translate({_g(x)},{_g(y)}) rotate({-9 + (k * 7) % 16})" filter="url(#stampInk)" opacity="0.88">'
+        f'<circle r="{_g(r)}" fill="{ink}" fill-opacity="0.06" stroke="{ink}" stroke-width="1.8"/>'
+        f'<circle r="{_g(r - 3.5)}" fill="none" stroke="{ink}" stroke-width="0.7"/>'
+        f'<text y="{_g(fs * 0.36)}" text-anchor="middle" {SERIF} font-size="{_g(fs)}" font-weight="700" '
+        f'fill="{ink}" letter-spacing="-0.5">{esc(tier)}</text></g>'
+    )
 
 
-def _slip_desktop(i: int, kind: str, repo: str, at: datetime | None, now: datetime, lang: Lang, cx: float, ty: float, wide: bool) -> str:
-    s = FEED_D
-    w = SLIP_W if not wide else 300
-    x0, y0 = cx - w / 2, ty + SLIP_NECK
-    band_h = 40
+# per layout: slip size, gap, font sizes (>= 18 desktop, >= 20 phone)
+WEEK = {
+    "desktop": dict(w=1200, sw=138, sh=236, gap=20, rows=((0, 7),), rope=(128,), day=24, day_en=20, date=18,
+                    count=54, stamp=18, stamp_r=26, today=18),
+    "phone": dict(w=600, sw=128, sh=240, gap=16, rows=((0, 4), (4, 7)), rope=(122, 432), day=24, day_en=20, date=20,
+                  count=52, stamp=20, stamp_r=27, today=20),
+}
+NECK = 16
+
+
+def _day_slip(k: int, d: date, n: int, today: bool, peak: bool, lang: Lang, cx: float, ty: float, cfg: dict) -> str:
+    w, h = cfg["sw"], cfg["sh"]
+    x0, y0 = cx - w / 2, ty + NECK
     v = P["vermilion"]
+    band_h = 44
+    glow = (
+        f'<g class="peakday"><ellipse cx="{_g(cx)}" cy="{_g(y0 + h / 2)}" rx="{_g(w * 0.95)}" ry="{_g(h * 0.68)}" fill="url(#peakGlow)"/></g>'
+        if peak
+        else ""
+    )
     paper = (
-        f'<rect x="{_g(cx - 9)}" y="{_g(ty)}" width="18" height="{SLIP_NECK + 2}" fill="#f3e6cc"/>'
-        f'<rect x="{_g(x0)}" y="{_g(y0)}" width="{w}" height="{SLIP_H}" rx="3" fill="url(#washi)" filter="url(#shadow)"/>'
-        f'<rect x="{_g(x0)}" y="{_g(y0)}" width="{w}" height="{SLIP_H}" rx="3" fill="#fff" filter="url(#paper)"/>'
-        f'<rect x="{_g(x0 + 7)}" y="{_g(y0 + 7)}" width="{w - 14}" height="{SLIP_H - 14}" rx="1.5" fill="none" stroke="{v}" stroke-opacity="0.55" stroke-width="0.9"/>'
-        f'<rect x="{_g(x0 + 10)}" y="{_g(y0 + 10)}" width="{w - 20}" height="{SLIP_H - 20}" rx="1" fill="none" stroke="{v}" stroke-opacity="0.3" stroke-width="0.5"/>'
-        + "".join(
-            f'<rect x="{_g(x0)}" y="{_g(y0 + SLIP_H * f)}" width="{w}" height="7" fill="url(#crease)"/>' for f in (0.37, 0.7)
-        )
-        + f'<rect x="{_g(x0 + 10)}" y="{_g(y0 + 10)}" width="{w - 20}" height="{band_h}" fill="url(#band)"/>'
+        f'<rect x="{_g(cx - 9)}" y="{_g(ty)}" width="18" height="{NECK + 2}" fill="#f3e6cc"/>'
+        f'<rect x="{_g(x0)}" y="{_g(y0)}" width="{w}" height="{h}" rx="3" fill="url(#washi)" filter="url(#shadow)"'
+        + (f' stroke="{P["lantern-gold"]}" stroke-width="2"' if peak else "")
+        + "/>"
+        f'<rect x="{_g(x0)}" y="{_g(y0)}" width="{w}" height="{h}" rx="3" fill="#fff" filter="url(#paper)"/>'
+        + "".join(f'<rect x="{_g(x0)}" y="{_g(y0 + h * f)}" width="{w}" height="7" fill="url(#crease)"/>' for f in (0.4, 0.72))
+        + f'<rect x="{_g(x0 + 7)}" y="{_g(y0 + 7)}" width="{w - 14}" height="{h - 14}" rx="1.5" fill="none" stroke="{v}" stroke-opacity="0.55" stroke-width="0.9"/>'
+        f'<rect x="{_g(x0 + 10)}" y="{_g(y0 + 10)}" width="{w - 20}" height="{band_h}" fill="url(#{"goldBand" if today else "band"})"/>'
         f'<rect x="{_g(x0 + 10)}" y="{_g(y0 + 10 + band_h - 2.5)}" width="{w - 20}" height="1" fill="{P["moon-a"]}" opacity="0.6"/>'
     )
-    by = y0 + 10 + band_h / 2
-    if kind == "empty":
-        head = icon("bell", cx - 11, by - 11, 22, P["moon-a"])
-        lines = wrap(L("feed_empty", lang), s["empty"], w - 44)
-        lh = s["empty"] * 1.45
-        cy = y0 + 10 + band_h + (SLIP_H - 20 - band_h) / 2
-        y = cy - lh * (len(lines) - 1) / 2 + s["empty"] * 0.35
-        body = "".join(
-            f'<text x="{_g(cx)}" y="{_g(y + k * lh)}" text-anchor="middle" {SERIF} font-size="{s["empty"]}" font-weight="700" '
-            f'fill="{P["ink-a"]}">{esc(t)}</text>'
-            for k, t in enumerate(lines)
+    names = L("weekdays", lang).split(",")
+    day_size = cfg["day"] if lang == "jp" else cfg["day_en"]
+    day = (
+        f'<text x="{_g(cx)}" y="{_g(y0 + 10 + band_h / 2 + day_size * 0.36)}" text-anchor="middle" {SERIF} font-size="{day_size}" '
+        f'font-weight="700" fill="{P["ink-a"] if today else P["moon-a"]}" letter-spacing="1">{esc(names[d.weekday()])}</text>'
+    )
+    date_y = y0 + 10 + band_h + 30
+    date_txt = (
+        f'<text x="{_g(cx)}" y="{_g(date_y)}" text-anchor="middle" {MONO} font-size="{cfg["date"]}" fill="#8a6a48">'
+        f"{d.month}/{d.day}</text>"
+        f'<path d="M{_g(cx - 34)},{_g(date_y + 12)} h68" stroke="{v}" stroke-opacity="0.4" stroke-width="0.8"/>'
+        f'<path d="M{_g(cx)},{_g(date_y + 9)} l3,3 l-3,3 l-3,-3 z" fill="{v}"/>'
+    )
+    count = fmt(n)
+    cs = float(cfg["count"])
+    while cs > 30 and text_width(count, cs, weight=700) > w - 26:
+        cs -= 2
+    count_txt = (
+        f'<text x="{_g(cx)}" y="{_g(date_y + 30 + cs * 0.74)}" text-anchor="middle" {SERIF} font-size="{_g(cs)}" font-weight="700" '
+        f'fill="{P["ink-red"] if n else "#b39b7a"}">{esc(count)}</text>'
+    )
+    stamp = _fortune_stamp(cx, y0 + h - cfg["stamp_r"] - 14, cfg["stamp_r"], fortune_tier(n), cfg["stamp"], k)
+    tag = ""
+    if today:
+        ty2 = y0 + h + 32
+        tag = (
+            f'<path d="M{_g(cx - 5)},{_g(y0 + h + 8)} l5,-5 l5,5" fill="none" stroke="{P["lantern-gold"]}" stroke-width="1.6"/>'
+            f'<text x="{_g(cx)}" y="{_g(ty2)}" text-anchor="middle" {SERIF} font-size="{cfg["today"]}" font-weight="700" '
+            f'fill="{P["lantern-gold"]}" letter-spacing="1">{esc(L("week_today", lang))}</text>'
         )
-        return paper + head + body + _stamp(x0 + w - 32, y0 + SLIP_H - 32, 17, 0)
-    verb = L(f"verb_{kind}", lang)
-    vw = text_width(verb, s["verb"], weight=700, letter_spacing=1)
-    ix = cx - (vw + 26) / 2
-    head = icon(VERB_ICON[kind], ix, by - 9, 18, P["moon-a"]) + (
-        f'<text x="{_g(ix + 26)}" y="{_g(by + s["verb"] * 0.35)}" {SERIF} font-size="{s["verb"]}" font-weight="700" '
-        f'fill="{P["moon-a"]}" letter-spacing="1">{esc(verb)}</text>'
-    )
-    per_line = int((w - 36) // (0.6 * s["repo"]))
-    lines = _repo_lines(repo, per_line, 3)
-    lh = s["repo"] * 1.32
-    area_top, area_bot = y0 + 10 + band_h + 8, y0 + SLIP_H - 58
-    y = (area_top + area_bot) / 2 - lh * (len(lines) - 1) / 2 + s["repo"] * 0.36
-    body = "".join(
-        f'<text x="{_g(cx)}" y="{_g(y + k * lh)}" text-anchor="middle" {MONO} '
-        + (
-            f'font-size="{s["owner"]}" fill="#8a6a48">'
-            if own
-            else f'font-size="{s["repo"]}" font-weight="700" fill="{P["ink-a"]}">'
-        )
-        + f"{esc(t)}</text>"
-        for k, (t, own) in enumerate(lines)
-    )
-    foot_y = y0 + SLIP_H - 46
-    foot = (
-        f'<path d="M{_g(cx - 50)},{_g(foot_y)} h100" stroke="{v}" stroke-opacity="0.45" stroke-width="0.8"/>'
-        f'<path d="M{_g(cx)},{_g(foot_y - 3)} l3,3 l-3,3 l-3,-3 z" fill="{v}"/>'
-        f'<text x="{_g(cx)}" y="{_g(y0 + SLIP_H - 22)}" text-anchor="middle" {SERIF} font-size="{s["ago"]}" font-weight="700" '
-        f'fill="{P["ink-red"]}">{esc(ago(at, now, lang))}</text>'
-    )
-    return paper + head + body + foot + _stamp(x0 + w - 30, y0 + SLIP_H - 31, 15, i)
+    return glow + paper + day + date_txt + count_txt + stamp + tag
 
 
-def _slip_phone(i: int, kind: str, repo: str, at: datetime | None, now: datetime, lang: Lang, x0: float, y0: float) -> str:
-    s = FEED_P
-    w, h = PSLIP_W, PSLIP_H
-    v = P["vermilion"]
-    paper = (
-        f'<rect x="{_g(x0)}" y="{_g(y0)}" width="{w}" height="{h}" rx="3" fill="url(#washi)" filter="url(#shadow)"/>'
-        f'<rect x="{_g(x0)}" y="{_g(y0)}" width="{w}" height="{h}" rx="3" fill="#fff" filter="url(#paper)"/>'
-        f'<rect x="{_g(x0 + 6)}" y="{_g(y0 + 6)}" width="{w - 12}" height="{h - 12}" rx="1.5" fill="none" stroke="{v}" stroke-opacity="0.55" stroke-width="0.9"/>'
-        f'<rect x="{_g(x0 + 9)}" y="{_g(y0 + 9)}" width="{PBAND}" height="{h - 18}" fill="url(#bandV)"/>'
-        f'<rect x="{_g(x0 + 9 + PBAND - 2.5)}" y="{_g(y0 + 9)}" width="1" height="{h - 18}" fill="{P["moon-a"]}" opacity="0.6"/>'
+def _week_header(total: int, lang: Lang, layout: Layout) -> str:
+    big = layout == "desktop"
+    title_s, cap_s, num_s, lab_s = (32, 18, 52, 18) if big else (32, 20, 52, 20)
+    lx, right = (40, 1160) if big else (26, 574)
+    title = (
+        icon("torii", lx, 36, 30, P["vermilion"])
+        + f'<text x="{lx + 42}" y="62" {SERIF} font-size="{title_s}" font-weight="700" fill="url(#headInk)" '
+        f'letter-spacing="{_g(title_s * 0.08)}">{esc(L("week_title", lang))}</text>'
+        f'<text x="{lx}" y="96" {SERIF} font-size="{cap_s}" fill="{P["text-soft-a"]}" letter-spacing="0.5">'
+        f'{esc(L("week_caption", lang))}</text>'
     )
-    bx = x0 + 9 + PBAND / 2
-    tx = x0 + 9 + PBAND + 20
-    if kind == "empty":
-        head = icon("bell", bx - 15, y0 + h / 2 - 15, 30, P["moon-a"])
-        lines = wrap(L("feed_empty", lang), s["empty"], w - PBAND - 40 - 50)
-        lh = s["empty"] * 1.35
-        y = y0 + h / 2 - lh * (len(lines) - 1) / 2 + s["empty"] * 0.35
-        body = "".join(
-            f'<text x="{_g(tx)}" y="{_g(y + k * lh)}" {SERIF} font-size="{s["empty"]}" font-weight="700" fill="{P["ink-a"]}">{esc(t)}</text>'
-            for k, t in enumerate(lines)
-        )
-        return paper + head + body + _stamp(x0 + w - 36, y0 + h / 2, 19, 0)
-    verb = L(f"verb_{kind}", lang)
-    head = icon(VERB_ICON[kind], bx - 12, y0 + 22, 24, P["moon-a"]) + (
-        f'<text x="{_g(bx)}" y="{_g(y0 + 76)}" text-anchor="middle" {SERIF} font-size="{s["verb"]}" font-weight="700" '
-        f'fill="{P["moon-a"]}" letter-spacing="0.5">{esc(verb)}</text>'
+    num = (
+        f'<text x="{right}" y="72" text-anchor="end" {SERIF} font-size="{num_s}" font-weight="700" '
+        f'fill="url(#headInk)" filter="url(#numGlow)">{esc(fmt(total))}</text>'
+        f'<text x="{right}" y="98" text-anchor="end" {SERIF} font-size="{lab_s}" fill="{P["text-soft-a"]}" '
+        f'letter-spacing="0.6">{esc(L("week_total", lang))}</text>'
     )
-    per_line = int((x0 + w - 14 - tx) // (0.6 * s["repo"]))
-    lines = _repo_lines(repo, per_line, 2)
-    if len(lines) == 2 and lines[0][1] and len(lines[0][0]) + len(lines[1][0]) <= per_line:
-        repo_svg = (
-            f'<text x="{_g(tx)}" y="{_g(y0 + 46)}" {MONO} font-size="{s["repo"]}">'
-            f'<tspan fill="#8a6a48">{esc(lines[0][0])}</tspan>'
-            f'<tspan font-weight="700" fill="{P["ink-a"]}">{esc(lines[1][0])}</tspan></text>'
-        )
-        ago_y = y0 + 82
-    else:
-        repo_svg = "".join(
-            f'<text x="{_g(tx)}" y="{_g(y0 + 40 + k * 24)}" {MONO} font-size="{s["repo"]}"'
-            + (' fill="#8a6a48">' if own else f' font-weight="700" fill="{P["ink-a"]}">')
-            + f"{esc(t)}</text>"
-            for k, (t, own) in enumerate(lines)
-        )
-        ago_y = y0 + 40 + len(lines) * 24 + 14
-    foot = (
-        f'<path d="M{_g(tx)},{_g(ago_y - 7)} l3.5,-3.5 l3.5,3.5 l-3.5,3.5 z" fill="{v}"/>'
-        f'<text x="{_g(tx + 14)}" y="{_g(ago_y)}" {SERIF} font-size="{s["ago"]}" font-weight="700" fill="{P["ink-red"]}">'
-        f"{esc(ago(at, now, lang))}</text>"
-    )
-    return paper + head + repo_svg + foot + _stamp(x0 + w - 34, y0 + h - 34, 17, i)
+    return f'<g class="rise">{title}</g><g class="rise d1">{num}</g>' + _num_glow()
 
 
-def render_feed(events: list[Event], now: datetime, lang: Lang, layout: Layout, fonts, recent_repos=()) -> str:
-    items = _feed_items(list(events), now, list(recent_repos))
-    slips: list[tuple[str, str, datetime | None]] = list(items) or [("empty", "", None)]
-    title = L("feed_title", lang)
-    if layout == "desktop":
-        s = FEED_D
-        W = s["w"]
-        widths = [SLIP_W if k != "empty" else 300 for k, _, _ in slips]
-        total = sum(widths) + SLIP_GAP * (len(slips) - 1)
-        x = (W - total) / 2
-        H = s["rope_y"] + 30 + SLIP_NECK + SLIP_H + 30
-        rope_top = s["rope_y"]
-        parts = []
+def render_week(data: Data, now: datetime, lang: Lang, layout: Layout, fonts) -> str:
+    """今週の参拝: seven omikuji, one per calendar day (oldest left, today right), with
+    the weekday, date, count and a fortune seal by tier; the busiest day glows.
+    Takes only the contribution calendar: no repo names ever reach this card."""
+    cfg = WEEK[layout]
+    W = cfg["w"]
+    dates = _week_dates(now)
+    counts = week_counts(data.days, now)
+    top = max(counts)
+    peak = max(range(7), key=lambda k: (counts[k], k)) if top > 0 else None
+    parts, ropes = [], []
+    bottom = 0.0
+    for r, ((a, b), rope_top) in enumerate(zip(cfg["rows"], cfg["rope"])):
+        n = b - a
+        span = n * cfg["sw"] + (n - 1) * cfg["gap"]
+        x = (W - span) / 2
         tassels = []
-        for i, ((kind, repo, at), w) in enumerate(zip(slips, widths)):
-            cx = x + w / 2
+        for j, k in enumerate(range(a, b)):
+            cx = x + cfg["sw"] / 2
             ry = rope_top + rope_y(W, cx)
-            slip = _slip_desktop(i, kind, repo, at, now, lang, cx, ry + 6, kind == "empty")
+            slip = _day_slip(k, dates[k], counts[k], k == 6, k == peak, lang, cx, ry + 6, cfg)
             parts.append(
-                f'<g class="slip"><g class="drop" style="animation-delay:{_g(0.3 + i * 0.18)}s">'
-                f'<g class="slipsway" style="animation-delay:-{_g(i * 1.3)}s">{slip}</g></g>'
-                f"{_knot(cx, ry)}</g>"
+                f'<g class="slip"><g class="drop" style="animation-delay:{_g(0.3 + k * 0.14)}s">'
+                f'<g class="slipsway" style="animation-delay:-{_g(k * 1.1)}s">{slip}</g></g>{_knot(cx, ry)}</g>'
             )
-            if i < len(slips) - 1:
-                tassels.append((x + w + SLIP_GAP / 2) / W)
-            x += w + SLIP_GAP
-        edge = [0.04, 0.96]
-        head = section_heading(title, W / 2, s["head_y"], 30, 20)
-        rope_svg = f'<g transform="translate(0,{rope_top})">{rope(W, tuple(edge + tassels))}</g>'
-        scene = (
-            _stars(W, H, 40, 21)
-            + f'<rect y="{_g(H * 0.5)}" width="{W}" height="{_g(H * 0.5)}" fill="url(#mist)"/>'
-            + _petals(W, H, 7, 8)
-            + head
-            + rope_svg
-            + "".join(parts)
-        )
-        return _card(W, H, scene, title=title, css=FEED_CSS, defs=_feed_defs(W, H), fonts=fonts)
-
-    s = FEED_P
-    W = s["w"]
-    x0 = (W - PSLIP_W) / 2
-    rope_top = s["rope_y"]
-    first = rope_top + 40
-    H = first + len(slips) * PSLIP_H + (len(slips) - 1) * PSLIP_GAP + 34
-    cords_x = (x0 + 70, x0 + PSLIP_W - 70)
-    parts = []
-    y = first
-    for i, (kind, repo, at) in enumerate(slips):
-        # red cords up to the rope (first slip) or the slip above
-        if i == 0:
-            cords = "".join(
-                f'<path d="M{_g(cx)},{_g(rope_top + rope_y(W, cx))} L{_g(cx)},{_g(y + 4)}" stroke="{P["vermilion"]}" stroke-width="2.4"/>'
-                f'<circle cx="{_g(cx)}" cy="{_g(rope_top + rope_y(W, cx))}" r="3.6" fill="{P["vermilion"]}"/>'
-                for cx in cords_x
-            )
-        else:
-            cords = "".join(
-                f'<path d="M{_g(cx)},{_g(y - PSLIP_GAP - 4)} L{_g(cx)},{_g(y + 4)}" stroke="{P["vermilion"]}" stroke-width="2.4"/>'
-                f'<circle cx="{_g(cx)}" cy="{_g(y - PSLIP_GAP / 2)}" r="3" fill="{P["vermilion"]}"/>'
-                for cx in cords_x
-            )
-        slip = _slip_phone(i, kind, repo, at, now, lang, x0, y)
-        eyelets = "".join(
-            f'<circle cx="{_g(cx)}" cy="{_g(y + 4)}" r="2.6" fill="{P["ink-a"]}" stroke="{P["vermilion"]}" stroke-width="1.2"/>'
-            + (
-                f'<circle cx="{_g(cx)}" cy="{_g(y + PSLIP_H - 4)}" r="2.6" fill="{P["ink-a"]}" stroke="{P["vermilion"]}" stroke-width="1.2"/>'
-                if i < len(slips) - 1
-                else ""
-            )
-            for cx in cords_x
-        )
-        parts.append(
-            f'<g class="slip"><g class="drop" style="animation-delay:{_g(0.3 + i * 0.18)}s">{cords}{slip}{eyelets}</g></g>'
-        )
-        y += PSLIP_H + PSLIP_GAP
-    head = section_heading(title, W / 2, s["head_y"], 32, 21, rule=70)
-    rope_svg = f'<g transform="translate(0,{rope_top})">{rope(W, (0.05, 0.5, 0.95))}</g>'
-    chain = f'<g class="chain" style="transform-origin:{_g(W / 2)}px {rope_top + 20}px">{"".join(parts)}</g>'
+            if j < n - 1:
+                tassels.append((x + cfg["sw"] + cfg["gap"] / 2) / W)
+            x += cfg["sw"] + cfg["gap"]
+            bottom = max(bottom, ry + 6 + NECK + cfg["sh"])
+        ropes.append(f'<g transform="translate(0,{rope_top})">{rope(W, tuple([0.03] + tassels + [0.97]))}</g>')
+    H = int(bottom + 50)
+    total = sum(counts)
     scene = (
-        _stars(W, H, 40, 22)
+        _stars(W, H, 40 if layout == "desktop" else 34, 21)
         + f'<rect y="{_g(H * 0.5)}" width="{W}" height="{_g(H * 0.5)}" fill="url(#mist)"/>'
-        + _petals(W, H, 6, 9)
-        + head
-        + rope_svg
-        + chain
+        + _petals(W, H, 7 if layout == "desktop" else 5, 8)
+        + _week_header(total, lang, layout)
+        + "".join(ropes)
+        + "".join(parts)
     )
-    return _card(W, H, scene, title=title, css=FEED_CSS, defs=_feed_defs(W, H), fonts=fonts)
+    title = f"{L('week_title', lang)} · {fmt(total)} {L('week_total', lang)}"
+    return _card(W, H, scene, title=title, css=WEEK_CSS, defs=_week_defs(W, H), fonts=fonts)
 
 
 # ---------------------------------------------------------------- stat plaques
@@ -856,11 +724,27 @@ def render_feed(events: list[Event], now: datetime, lang: Lang, layout: Layout, 
 
 STAT_ACCENT = {
     "contrib": P["vermilion"],
-    "streak": P["lantern-glow-b"],
+    "month": P["moon-b"],
+    "peak": P["lantern-glow-b"],
     "stars": P["lantern-gold"],
-    "followers": P["sakura-b"],
 }
-STAT_INDEX = {"contrib": 0, "streak": 1, "stars": 2, "followers": 3}
+STAT_INDEX = {"contrib": 0, "month": 1, "peak": 2, "stars": 3}
+
+
+def last_days_total(days: list[tuple[date, int]], n: int) -> int:
+    """Sum of the last n calendar days the calendar covers (ending at its last day)."""
+    if not days:
+        return 0
+    end = max(d for d, _ in days)
+    start = end - timedelta(days=n - 1)
+    return sum(c for d, c in days if start <= d <= end)
+
+
+def peak_day(days: list[tuple[date, int]]) -> tuple[date, int] | None:
+    """(date, count) of the busiest single day; ties go to the latest day. None when
+    there is no day with a contribution."""
+    best = max(days, key=lambda x: (x[1], x[0]), default=None)
+    return best if best and best[1] > 0 else None
 STAT_CSS = """
 .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flame 2.2s ease-in-out infinite}
 @keyframes flame{0%,100%{transform:scale(1,1) skewX(0)}30%{transform:scale(.95,1.06) skewX(-3deg)}60%{transform:scale(1.04,.96) skewX(2deg)}}
@@ -880,7 +764,20 @@ def _em_contrib() -> str:
     )
 
 
-def _em_streak() -> str:
+def _em_month() -> str:
+    """A full moon rising over the hills: a month of nights."""
+    return (
+        f'<circle cy="-4" r="30" fill="url(#moonGlow)" class="halo"/>'
+        f'<circle cy="-4" r="19" fill="{P["moon-a"]}"/>'
+        f'<g fill="#e6cfa4" opacity="0.55"><circle cx="-6" cy="-10" r="3.6"/><circle cx="7" cy="-1" r="2.4"/><circle cx="-3" cy="5" r="2"/></g>'
+        f'<path d="M-46,26 Q-26,8 -8,18 Q8,6 26,16 Q38,10 46,16 V46 H-46 Z" fill="{P["night-0"]}"/>'
+        f'<path d="M-46,26 Q-26,8 -8,18 Q8,6 26,16 Q38,10 46,16" fill="none" stroke="{P["lantern-gold"]}" stroke-opacity="0.45" stroke-width="1"/>'
+        '<path class="glint" d="M-24,-26 l1.2,-4.5 l1.2,4.5 l4.5,1.2 l-4.5,1.2 l-1.2,4.5 l-1.2,-4.5 l-4.5,-1.2 z" fill="#fff"/>'
+    )
+
+
+def _em_peak() -> str:
+    """A tall flame (最も熱い一日)."""
     return (
         '<radialGradient id="flameG" cx="0.5" cy="0.75" r="0.75"><stop offset="0" stop-color="#fff4dc"/>'
         f'<stop offset="0.35" stop-color="{P["lantern-gold"]}"/><stop offset="0.75" stop-color="{P["lantern-glow-b"]}"/>'
@@ -900,36 +797,27 @@ def _em_stars() -> str:
     )
 
 
-def _em_followers() -> str:
-    gold = P["lantern-gold"]
-
-    def person(x: float, s: float, op: float) -> str:
-        return (
-            f'<g transform="translate({x},0) scale({s})" opacity="{op}"><circle cy="-12" r="8" fill="{gold}"/>'
-            f'<path d="M-14,20 C-14,4 -8,-1 0,-1 C8,-1 14,4 14,20 Z" fill="{gold}"/></g>'
-        )
-
-    return (
-        person(-15, 1.0, 1) + person(15, 1.0, 0.85)
-        + f'<path class="thread" d="M-6,8 C-2,22 2,22 6,8" fill="none" stroke="{P["vermilion"]}" stroke-width="2.2" stroke-linecap="round"/>'
-        + f'<path d="M-6,8 C-2,22 2,22 6,8" fill="none" stroke="{P["vermilion"]}" stroke-opacity="0.35" stroke-width="2.2"/>'
-    )
-
-
-EMBLEMS = {"contrib": _em_contrib, "streak": _em_streak, "stars": _em_stars, "followers": _em_followers}
+EMBLEMS = {"contrib": _em_contrib, "month": _em_month, "peak": _em_peak, "stars": _em_stars}
 
 
 def _stat_text(kind: StatKind, data: Data, lang: Lang) -> tuple[str, str, str, str]:
     """(title, number, unit, sub line)"""
     if kind == "contrib":
         return L("stat_contrib", lang), fmt(data.total_year), "", L("stat_contrib_sub", lang)
-    if kind == "streak":
-        cur, longest = streaks(data.days)
-        unit = L("stat_streak_unit_one" if cur == 1 else "stat_streak_unit", lang)
-        return L("stat_streak", lang), fmt(cur), unit, L("stat_streak_sub", lang).format(n=fmt(longest))
+    if kind == "month":
+        n = last_days_total(data.days, 30)
+        return L("stat_month", lang), fmt(n), "", L("stat_month_sub", lang).format(avg=f"{n / 30:.1f}")
+    if kind == "peak":
+        best = peak_day(data.days)
+        if best is None:
+            return L("stat_peak", lang), "0", "", L("stat_peak_none", lang)
+        d, n = best
+        mon = L("months", "en").split(",")[d.month - 1]
+        sub = L("stat_peak_sub", lang).format(y=d.year, m=d.month, d=d.day, mon=mon)
+        return L("stat_peak", lang), fmt(n), "", sub
     if kind == "stars":
         return L("stat_stars", lang), fmt(data.stars), "", L("stat_stars_sub", lang).format(n=fmt(data.public_repos))
-    return L("stat_followers", lang), fmt(data.followers), "", L("stat_followers_sub", lang)
+    raise KeyError(kind)
 
 
 def render_stat(kind: StatKind, data: Data, lang: Lang, fonts) -> str:

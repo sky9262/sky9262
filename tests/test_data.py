@@ -17,7 +17,6 @@ from scripts.generate.github_data import (
     filter_events,
     hour_buckets,
     load_fixture,
-    streaks,
 )
 
 FIX = Path(__file__).parent / "fixtures" / "github"
@@ -89,35 +88,6 @@ def test_fixtures_are_anonymised():
     assert not re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
     owners = set(re.findall(r'"(?:name|nameWithOwner|full_name)": "([^"/]+)/', text))
     assert owners <= {"sky9262", "example-org"}
-
-
-# ---------- streaks ----------
-
-
-def _days(counts, end=date(2026, 11, 12)):
-    start = end - timedelta(days=len(counts) - 1)
-    return [(start + timedelta(days=i), c) for i, c in enumerate(counts)]
-
-
-def test_streaks_today_zero_keeps_streak():
-    assert streaks(_days([0, 0, 3, 1, 0]))[0] == 2
-
-
-def test_streaks_today_nonzero_counts_today():
-    assert streaks(_days([0, 5, 3, 1]))[0] == 3
-
-
-def test_streaks_broken_yesterday():
-    assert streaks(_days([4, 4, 0, 0]))[0] == 0
-
-
-def test_streaks_longest():
-    assert streaks(_days([1, 1, 1, 1, 0, 2, 2, 0, 1, 1])) == (2, 4)
-
-
-def test_streaks_all_zero():
-    assert streaks(_days([0] * 30)) == (0, 0)
-    assert streaks([]) == (0, 0)
 
 
 # ---------- hour buckets ----------

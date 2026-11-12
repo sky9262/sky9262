@@ -38,7 +38,7 @@ def test_readme_output_urls():
         assert branches <= {"output", "output-test"}, branches
         assert f"/{lang}/plaque-phisheye.svg" in text
         for name in ("torii-desktop", "torii-phone", "feed-desktop", "feed-phone",
-                     "stat-contrib", "stat-streak", "stat-stars", "stat-followers",
+                     "stat-contrib", "stat-month", "stat-peak", "stat-stars",
                      "enso", "hours"):
             assert f"/{lang}/{name}.svg" in text, name
 

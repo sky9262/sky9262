@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from helpers import assert_min_text, assert_no_external, assert_under, assert_valid_svg
-from scripts.generate.github_data import Event, filter_events, load_fixture
+from scripts.generate.github_data import load_fixture
 from scripts.shrine.fonts import FONT_DIR, RuntimeFonts
 from scripts.shrine.svg import visible_strings
 
@@ -22,6 +22,7 @@ LAYOUTS = ("desktop", "phone")
 # rendered width -> minimum SVG units (12 px rendered); asserted via assert_min_text too
 MIN_UNITS = {"desktop": 17, "phone": 20, "small": 14}
 RENDERED = {"desktop": 846, "phone": 360, "small": 360}
+STATS = ("contrib", "month", "peak", "stars")
 
 from scripts.shrine.cards import live  # noqa: E402
 
@@ -36,10 +37,6 @@ def rfonts():
     if not list(FONT_DIR.glob("runtime-*.woff2")):
         pytest.skip("runtime fonts not generated")
     return RuntimeFonts()
-
-
-def _events(d):
-    return filter_events(d.events, d.login, [])
 
 
 def _sizes(svg: str) -> list[float]:
@@ -59,15 +56,11 @@ def _check(svg: str, kind: str) -> None:
 def _all_cards(data, fonts):
     """(name, kind, svg) for every live card x language x layout."""
     out = []
-    ev = _events(data)
     for lang in LANGS:
         for layout in LAYOUTS:
             out.append((f"torii-{layout}-{lang}", layout, live.render_torii_path(data, lang, layout, fonts)))
-            out.append((
-                f"feed-{layout}-{lang}", layout,
-                live.render_feed(ev, NOW, lang, layout, fonts, recent_repos=data.recent_repos),
-            ))
-        for k in ("contrib", "streak", "stars", "followers"):
+            out.append((f"feed-{layout}-{lang}", layout, live.render_week(data, NOW, lang, layout, fonts)))
+        for k in STATS:
             out.append((f"stat-{k}-{lang}", "small", live.render_stat(k, data, lang, fonts)))
         out.append((f"enso-{lang}", "small", live.render_enso(data, lang, fonts)))
         out.append((f"hours-{lang}", "small", live.render_hours(data, lang, fonts)))
@@ -90,20 +83,82 @@ def test_torii(data, rfonts, lang, layout):
     assert live.LABELS["torii_total"][lang] in visible_strings(svg)
 
 
+def _last7(data):
+    return data.days[-7:]  # the fixture ends on NOW's date
+
+
 @pytest.mark.parametrize("lang", LANGS)
 @pytest.mark.parametrize("layout", LAYOUTS)
-def test_feed(data, rfonts, lang, layout):
-    ev = _events(data)
-    svg = live.render_feed(ev, NOW, lang, layout, rfonts, recent_repos=data.recent_repos)
+def test_week(data, rfonts, lang, layout):
+    svg = live.render_week(data, NOW, lang, layout, rfonts)
     _check(svg, layout)
     assert f'viewBox="0 0 {1200 if layout == "desktop" else 600} ' in svg
+    assert svg.count('class="slip"') == 7
     vis = visible_strings(svg)
-    assert live.LABELS["verb_push"][lang] in vis
-    assert "voice_identify" in vis
+    days = _last7(data)
+    # oldest first, today last: dates in order
+    dates = [f"{d.month}/{d.day}" for d, _ in days]
+    pos = [vis.index(t) for t in dates]
+    assert pos == sorted(pos)
+    names = live.L("weekdays", lang).split(",")
+    for d, c in days:
+        assert names[d.weekday()] in vis
+        assert f"{c:,}" in vis
+    assert live.L("week_total", lang) in vis
+    assert f"{sum(c for _, c in days):,}" in vis
+    assert live.L("week_today", lang) in vis
+
+
+def test_week_fortune_tiers():
+    assert [live.fortune_tier(n) for n in (0, 1, 9, 10, 29, 30, 49, 50, 500)] == [
+        "休", "小吉", "小吉", "中吉", "中吉", "吉", "吉", "大吉", "大吉",
+    ]
+
+
+def test_week_stamps_and_glow(data, rfonts):
+    svg = live.render_week(data, NOW, "jp", "desktop", rfonts)
+    vis = visible_strings(svg)
+    for _d, c in _last7(data):
+        assert live.fortune_tier(c) in vis
+    assert svg.count('class="slip"') == 7
+    assert svg.count('class="peakday"') == 1  # the busiest day glows, once
+
+
+def test_week_all_zero(data, rfonts):
+    zero = replace(data, days=[(d, 0) for d, _ in data.days], total_year=0)
+    for lang in LANGS:
+        for layout in LAYOUTS:
+            svg = live.render_week(zero, NOW, lang, layout, rfonts)
+            _check(svg, layout)
+            assert svg.count('class="slip"') == 7
+            assert visible_strings(svg).count("休") == 7
+            assert 'class="peakday"' not in svg
+
+
+def test_week_today_zero_and_missing_days(data, rfonts):
+    today0 = replace(data, days=data.days[:-1] + [(data.days[-1][0], 0)])
+    for layout in LAYOUTS:
+        svg = live.render_week(today0, NOW, "en", layout, rfonts)
+        _check(svg, layout)
+        assert svg.count('class="slip"') == 7
+    # no data for the last days (e.g. the calendar ends earlier): those days read 0
+    short = replace(data, days=data.days[:-3])
+    vis = visible_strings(live.render_week(short, NOW, "jp", "desktop", rfonts))
+    assert "11/12" in vis and vis.count("休") >= 3
+    assert live.week_counts(data.days, NOW) == [c for _, c in _last7(data)]
+    assert live.week_counts([], NOW) == [0] * 7
+
+
+def test_week_has_no_repo_names(data, rfonts):
+    svg = live.render_week(data, NOW, "en", "desktop", rfonts) + live.render_week(data, NOW, "jp", "phone", rfonts)
+    for e in data.events:
+        assert e.repo.split("/")[-1] not in svg
+    for name, _ in data.recent_repos:
+        assert name.split("/")[-1] not in svg
 
 
 @pytest.mark.parametrize("lang", LANGS)
-@pytest.mark.parametrize("kind", ["contrib", "streak", "stars", "followers"])
+@pytest.mark.parametrize("kind", STATS)
 def test_stat(data, rfonts, lang, kind):
     svg = live.render_stat(kind, data, lang, rfonts)
     _check(svg, "small")
@@ -111,11 +166,45 @@ def test_stat(data, rfonts, lang, kind):
     vis = visible_strings(svg)
     number = {
         "contrib": f"{data.total_year:,}",
-        "streak": "3",
+        "month": f"{sum(c for _, c in data.days[-30:]):,}",
+        "peak": f"{max(c for _, c in data.days):,}",
         "stars": f"{data.stars:,}",
-        "followers": f"{data.followers:,}",
     }[kind]
     assert number in vis
+
+
+def test_stat_month_and_peak_values(data, rfonts):
+    assert live.last_days_total(data.days, 30) == 530
+    from datetime import date
+
+    assert live.peak_day(data.days) == (date(2026, 10, 15), 75)
+    jp = visible_strings(live.render_stat("month", data, "jp", rfonts))
+    assert "530" in jp and "1日平均 17.7" in jp
+    en = visible_strings(live.render_stat("month", data, "en", rfonts))
+    assert "avg 17.7 a day" in en
+    assert "2026年10月15日" in visible_strings(live.render_stat("peak", data, "jp", rfonts))
+    assert "Oct 15, 2026" in visible_strings(live.render_stat("peak", data, "en", rfonts))
+
+
+def test_stat_peak_ties_take_latest_and_zero_has_no_date(data, rfonts):
+    from datetime import date
+
+    days = [(date(2026, 1, 1), 5), (date(2026, 2, 1), 5), (date(2026, 1, 15), 1)]
+    assert live.peak_day(days) == (date(2026, 2, 1), 5)
+    assert live.peak_day([]) is None
+    zero = replace(data, days=[(d, 0) for d, _ in data.days], total_year=0)
+    for lang in LANGS:
+        for kind in STATS:
+            svg = live.render_stat(kind, zero, lang, rfonts)
+            _check(svg, "small")
+    assert live.L("stat_peak_none", "jp") in visible_strings(live.render_stat("peak", zero, "jp", rfonts))
+
+
+def test_old_stat_kinds_gone(data, rfonts):
+    for kind in ("streak", "followers"):
+        with pytest.raises(KeyError):
+            live.render_stat(kind, data, "jp", rfonts)
+    assert not hasattr(live, "render_feed")
 
 
 @pytest.mark.parametrize("lang", LANGS)
@@ -144,72 +233,11 @@ def test_hours(data, rfonts, lang):
 # ---------------------------------------------------------------- behaviour
 
 
-def test_feed_escapes_and_truncates(rfonts):
-    repo = 'a&b<c>"' + "x" * 40
-    ev = [Event("push", repo, NOW - timedelta(hours=2))]
-    for layout in LAYOUTS:
-        svg = live.render_feed(ev, NOW, "en", layout, rfonts)
-        assert_valid_svg(svg)
-        assert "&amp;" in svg
-        lines = visible_strings(svg).splitlines()
-        assert any(l.endswith("…") for l in lines), lines
-        assert "x" * 30 not in visible_strings(svg).replace("\n", "")
-
-
 def test_fit():
     assert live.fit("short", 28) == "short"
     s = live.fit("y" * 40, 28)
     assert len(s) == 28 and s.endswith("…")
     assert live.fit("z" * 28, 28) == "z" * 28
-
-
-def test_feed_backfill_when_few_events(data, rfonts):
-    """0 events -> slips come from the owner's recent repos, labelled 'updated'."""
-    svg = live.render_feed([], NOW, "jp", "desktop", rfonts, recent_repos=data.recent_repos)
-    vis = visible_strings(svg)
-    assert live.LABELS["verb_updated"]["jp"] in vis
-    assert "hermes-run" in vis
-    assert live.LABELS["feed_empty"]["jp"] not in vis
-    # 2 events -> backfilled, the event repo not repeated as 'updated'
-    ev = [
-        Event("push", "sky9262/hermes-run", NOW - timedelta(hours=3)),
-        Event("star", "someone/cool", NOW - timedelta(days=1)),
-    ]
-    svg = live.render_feed(ev, NOW, "en", "desktop", rfonts, recent_repos=data.recent_repos)
-    vis = visible_strings(svg)
-    assert vis.count("hermes-run") == 1
-    assert live.LABELS["verb_updated"]["en"] in vis
-    assert svg.count('class="slip"') <= 5
-
-
-def test_feed_no_backfill_with_enough_events(data, rfonts):
-    ev = [Event("push", f"sky9262/r{i}", NOW - timedelta(hours=i + 1)) for i in range(4)]
-    svg = live.render_feed(ev, NOW, "en", "desktop", rfonts, recent_repos=data.recent_repos)
-    assert live.LABELS["verb_updated"]["en"] not in visible_strings(svg)
-    assert svg.count('class="slip"') == 4
-
-
-def test_feed_caps_at_five(rfonts):
-    ev = [Event("star", f"o/r{i}", NOW - timedelta(hours=i + 1)) for i in range(9)]
-    for layout in LAYOUTS:
-        svg = live.render_feed(ev, NOW, "jp", layout, rfonts)
-        assert svg.count('class="slip"') == 5
-
-
-def test_feed_empty(rfonts):
-    for lang in LANGS:
-        for layout in LAYOUTS:
-            svg = live.render_feed([], NOW, lang, layout, rfonts)
-            assert_valid_svg(svg)
-            assert live.LABELS["feed_empty"][lang] in visible_strings(svg)
-            assert svg.count('class="slip"') == 1
-
-
-def test_feed_never_filters_itself(rfonts):
-    """render_feed renders what it is given; filtering is the generator's job."""
-    ev = [Event("push", "example-org/public-a", NOW - timedelta(hours=1))]
-    svg = live.render_feed(ev, NOW, "en", "desktop", rfonts)
-    assert "example-org/public-a" in visible_strings(svg).replace("\n", "")
 
 
 def test_private_names_never_rendered(data, rfonts):
@@ -286,26 +314,6 @@ def test_torii_kitsune_animated(data, rfonts):
             assert_under(live.render_torii_path(data, "jp", layout, rfonts, kitsune_png=real.read_bytes()), 500)
 
 
-@pytest.mark.parametrize(
-    "delta,jp,en",
-    [
-        (timedelta(minutes=30), "たった今", "just now"),
-        (timedelta(hours=5), "5時間前", "5h ago"),
-        (timedelta(days=3), "3日前", "3d ago"),
-        (timedelta(minutes=59), "たった今", "just now"),
-        (timedelta(hours=47, minutes=59), "47時間前", "47h ago"),
-        (timedelta(hours=48), "2日前", "2d ago"),
-    ],
-)
-def test_ago(delta, jp, en):
-    assert live.ago(NOW - delta, NOW, "jp") == jp
-    assert live.ago(NOW - delta, NOW, "en") == en
-
-
-def test_ago_future_is_just_now():
-    assert live.ago(NOW + timedelta(minutes=5), NOW, "en") == "just now"
-
-
 def test_thousands_separators(data, rfonts):
     big = replace(data, total_year=12345, stars=1234, followers=1000)
     assert "12,345" in visible_strings(live.render_stat("contrib", big, "en", rfonts))
@@ -374,15 +382,9 @@ def _texts(svg: str):
 def test_live_text_within_runtime_glyphs(data, rfonts):
     cmaps = _face_cmaps()
     serif_any = cmaps[("Shrine Serif", 400)] & cmaps[("Shrine Serif", 700)]
-    extra = [
-        live.render_feed([], NOW, lang, layout, rfonts) for lang in LANGS for layout in LAYOUTS
-    ] + [
-        live.render_feed(
-            [Event(k, "sky9262/x", NOW - timedelta(hours=h)) for k, h in
-             (("push", 0), ("create", 5), ("release", 60), ("star", 1), ("fork", 2))],
-            NOW, lang, "desktop", rfonts,
-        )
-        for lang in LANGS
+    zero = replace(data, days=[(d, 0) for d, _ in data.days], total_year=0)
+    extra = [live.render_week(zero, NOW, lang, layout, rfonts) for lang in LANGS for layout in LAYOUTS] + [
+        live.render_stat("peak", zero, lang, rfonts) for lang in LANGS
     ]
     svgs = [s for _n, _k, s in _all_cards(data, rfonts)] + extra
     for svg in svgs:
@@ -409,7 +411,7 @@ def test_live_stdlib_only():
         "d = load_fixture(Path('tests/fixtures/github'))\n"
         "f = RuntimeFonts()\n"
         "live.render_torii_path(d, 'en', 'desktop', f)\n"
-        "live.render_feed([], datetime.now(timezone.utc), 'en', 'phone', f, recent_repos=d.recent_repos)\n"
+        "live.render_week(d, datetime.now(timezone.utc), 'en', 'phone', f)\n"
         "live.render_hours(d, 'jp', f)\n"
     )
     root = Path(__file__).resolve().parent.parent

@@ -35,16 +35,16 @@
 
 <picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/torii-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/torii-desktop.svg" width="100%" alt="千本鳥居: 活動の入り口"></picture>
 
-<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-desktop.svg" width="100%" alt="最近のGitHub活動の一覧"></picture>
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-desktop.svg" width="100%" alt="今週の参拝: 直近7日間の毎日の貢献数"></picture>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-contrib.svg" width="410" alt="貢献数">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-streak.svg" width="410" alt="連続コミット日数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-contrib.svg" width="410" alt="今年の貢献数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-month.svg" width="410" alt="直近30日の貢献数">
 </p>
 
 <p align="center">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-peak.svg" width="410" alt="最も貢献の多かった一日">
 <img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-stars.svg" width="410" alt="獲得スター数">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-followers.svg" width="410" alt="フォロワー数">
 </p>
 
 <p align="center">

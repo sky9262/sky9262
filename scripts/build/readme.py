@@ -15,11 +15,11 @@ ALT: dict[str, dict[str, str]] = {
     "cando": {"jp": "我が道: 私にできること", "en": "What I can do"},
     "stack": {"jp": "道具: 技術スタック", "en": "Tech stack"},
     "torii": {"jp": "千本鳥居: 活動の入り口", "en": "Torii gate path into my activity"},
-    "feed": {"jp": "最近のGitHub活動の一覧", "en": "Recent GitHub activity feed"},
-    "stat-contrib": {"jp": "貢献数", "en": "Contributions"},
-    "stat-streak": {"jp": "連続コミット日数", "en": "Commit streak"},
+    "feed": {"jp": "今週の参拝: 直近7日間の毎日の貢献数", "en": "This week: contributions on each of the last 7 days"},
+    "stat-contrib": {"jp": "今年の貢献数", "en": "Contributions this year"},
+    "stat-month": {"jp": "直近30日の貢献数", "en": "Contributions in the last 30 days"},
+    "stat-peak": {"jp": "最も貢献の多かった一日", "en": "Busiest day of the year"},
     "stat-stars": {"jp": "獲得スター数", "en": "Stars earned"},
-    "stat-followers": {"jp": "フォロワー数", "en": "Followers"},
     "enso": {"jp": "円相: 使用言語の割合", "en": "Enso chart of top languages"},
     "hours": {"jp": "時間帯別のコミット数", "en": "Commits by hour of day"},
     "connect": {"jp": "ご縁: 連絡先", "en": "Connect with me"},
@@ -120,7 +120,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     blocks.append(_picture("feed", ALT["feed"][lang], lang, live_branch=output_branch))
     stats = [
         _img(_live(lang, output_branch, k), ALT[k][lang])
-        for k in ("stat-contrib", "stat-streak", "stat-stars", "stat-followers")
+        for k in ("stat-contrib", "stat-month", "stat-peak", "stat-stars")
     ]
     blocks += _pairs(stats)
     blocks += _pairs([

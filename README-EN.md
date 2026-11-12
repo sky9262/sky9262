@@ -35,16 +35,16 @@
 
 <picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/torii-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/torii-desktop.svg" width="100%" alt="Torii gate path into my activity"></picture>
 
-<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-desktop.svg" width="100%" alt="Recent GitHub activity feed"></picture>
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-desktop.svg" width="100%" alt="This week: contributions on each of the last 7 days"></picture>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-contrib.svg" width="410" alt="Contributions">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-streak.svg" width="410" alt="Commit streak">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-contrib.svg" width="410" alt="Contributions this year">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-month.svg" width="410" alt="Contributions in the last 30 days">
 </p>
 
 <p align="center">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-peak.svg" width="410" alt="Busiest day of the year">
 <img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-stars.svg" width="410" alt="Stars earned">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-followers.svg" width="410" alt="Followers">
 </p>
 
 <p align="center">

@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FIX = ROOT / "tests" / "fixtures" / "github"
 NAMES = (
     "torii-desktop", "torii-phone", "feed-desktop", "feed-phone",
-    "stat-contrib", "stat-streak", "stat-stars", "stat-followers",
+    "stat-contrib", "stat-month", "stat-peak", "stat-stars",
     "enso", "hours", "plaque-phisheye",
 )
 NOW = "2026-11-12T00:00Z"
@@ -177,12 +177,15 @@ def test_main_fixture_run(tmp_path, env, capsys):
     assert capsys.readouterr().out.strip() == "generated 22 files"
 
 
-def test_main_feed_uses_now_override(tmp_path, env):
+def test_main_week_uses_now_override(tmp_path, env):
     code, out = _run(tmp_path)
     assert code == 0
-    feed = visible_strings((out / "en" / "feed-desktop.svg").read_text(encoding="utf-8"))
-    # phishEye release at 2026-10-29T12:00Z is 13 days before --now
-    assert "13d ago" in feed
+    week = visible_strings((out / "en" / "feed-desktop.svg").read_text(encoding="utf-8"))
+    assert "11/12" in week and "11/6" in week and "11/5" not in week
+    out2 = tmp_path / "out2"
+    assert gen.main(["--out", str(out2), "--now", "2026-11-05T00:00Z", "--fixtures", str(FIX)]) == 0
+    week = visible_strings((out2 / "en" / "feed-desktop.svg").read_text(encoding="utf-8"))
+    assert "11/5" in week and "10/30" in week and "11/12" not in week
 
 
 def test_main_phisheye_plaque_has_live_numbers_and_wave_index(tmp_path, env, monkeypatch):
@@ -247,8 +250,8 @@ def test_main_fetch_receives_token_and_now(tmp_path, env, monkeypatch):
 
 
 def test_main_blocks_on_privacy(tmp_path, env, capsys):
-    # a feed label, not part of any repo name, so filter_events cannot remove it
-    term = "Released"
+    # a label of the this-week card (EN caption), so it is in no repo name
+    term = "one omikuji"
     env.setenv("PROFILE_DENYLIST", f"# comment\n\n{term}\n")
     _prev_out(tmp_path)
     code, out = _run(tmp_path)
@@ -256,35 +259,34 @@ def test_main_blocks_on_privacy(tmp_path, env, capsys):
     assert _tree(tmp_path) == PREV
     cap = capsys.readouterr()
     assert "PrivacyError" in cap.err
-    assert "en/feed-desktop.svg" in cap.err and "R***" in cap.err
+    assert "en/feed-desktop.svg" in cap.err and "o***" in cap.err
     assert term not in cap.out + cap.err
 
 
 def test_privacy_term_never_printed_jp(tmp_path, env, capsys):
-    term = "最近の活動"  # part of the JP feed title
+    term = "今週の参拝"  # the JP this-week title
     env.setenv("PROFILE_DENYLIST", term)
     code, _ = _run(tmp_path)
     assert code == 1
     cap = capsys.readouterr()
     assert term not in cap.out + cap.err
-    assert "最***" in cap.err
+    assert "今***" in cap.err
 
 
-def test_main_filters_events_and_recent_repos_before_render(tmp_path, env, monkeypatch):
-    def with_private(d):
-        data = load_fixture(d)
-        data.private_repo_names += ["voice_identify", "hermes-run"]
-        return data
-
-    monkeypatch.setattr(gen, "load_fixture", with_private)
-    env.setenv("PROFILE_DENYLIST", "example-org")
+def test_main_renders_no_repo_names_from_events_or_recent_repos(tmp_path, env):
+    """Owner edit 3: the activity cards carry no repo names at all (the phishEye
+    plaque is a curated project card, not activity)."""
     code, out = _run(tmp_path)
-    assert code == 0, "filtered names must not reach the cards"
-    text = _all_visible(out).lower()
-    for gone in ("voice_identify", "hermes-run", "example-org", "starred-repo", "forked-repo"):
-        assert gone not in text
-    # the backfill still shows a remaining public repo
-    assert "cinematic-" in text
+    assert code == 0
+    data = load_fixture(FIX)
+    names = {e.repo.split("/")[-1] for e in data.events} | {n.split("/")[-1] for n, _ in data.recent_repos}
+    assert names
+    for p in out.rglob("*.svg"):
+        if p.name == "plaque-phisheye.svg":
+            continue
+        svg = p.read_text(encoding="utf-8").lower()
+        for name in names:
+            assert name.lower() not in svg, (p.name, name)
 
 
 def test_main_succeeds_with_deny_term_only_in_dropped_events(tmp_path, env):
