@@ -196,7 +196,9 @@ def test_fetch_matches_fixture(monkeypatch):
     assert d == f
     for req, timeout in fake.calls:
         assert timeout == 20
-        assert req.get_header("Authorization") == "Bearer tok"
+        # sent, but never copied onto a redirect
+        assert req.unredirected_hdrs.get("Authorization") == "Bearer tok"
+        assert "Authorization" not in req.headers
     urls = [r.full_url for r, _ in fake.calls]
     assert any("/users/sky9262/events/public?per_page=100" in u for u in urls)
     assert any("/user/repos?visibility=private&affiliation=owner&per_page=100" in u for u in urls)
@@ -243,6 +245,25 @@ def test_fetch_private_repos_other_errors_raise(monkeypatch, code):
     monkeypatch.setattr(urllib.request, "urlopen", FakeGitHub({"/user/repos": deny}))
     with pytest.raises(FetchError):
         fetch("tok", now=NOW)
+
+
+def test_token_not_forwarded_on_redirect(monkeypatch):
+    """A redirect (possibly to another host) must not carry the token."""
+    seen = []
+
+    def capture(req, timeout=None):
+        seen.append(req)
+        return _Resp({"ok": True})
+
+    monkeypatch.setattr(urllib.request, "urlopen", capture)
+    gd._request("tok", f"{gd.API}/user/repos")
+    (req,) = seen
+    assert req.get_header("Authorization") == "Bearer tok"
+    new = urllib.request.HTTPRedirectHandler().redirect_request(
+        req, None, 302, "Found", {}, "https://elsewhere.example/x"
+    )
+    assert new is not None and new.get_header("Authorization") is None
+    assert new.get_header("User-agent") == "profile-readme-generator"
 
 
 @pytest.mark.parametrize("path", ["/events/public", "/commits"])

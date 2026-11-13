@@ -221,13 +221,15 @@ def _request(token: str, url: str, body: dict | None = None) -> object:
         data=data,
         method="POST" if data is not None else "GET",
         headers={
-            "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "profile-readme-generator",
             **({"Content-Type": "application/json"} if data is not None else {}),
         },
     )
+    # unredirected: urllib copies ordinary headers onto a redirect, possibly to
+    # another host; the token must only ever go to the URL we asked for
+    req.add_unredirected_header("Authorization", f"Bearer {token}")
     path = urllib.parse.urlsplit(url).path
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
