@@ -121,7 +121,7 @@ SOLVED_CARD = "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262"
 OWNER_ALT = {
     "thm": {"jp": "TryHackMe（sky9262）のバッジ", "en": "TryHackMe - sky9262"},
     "solved": {"jp": "Solved.ac（sky9262）の実績", "en": "Solved.ac - sky9262"},
-    "love": {"jp": "インドで愛を込めて作りました", "en": "Made with love in India"},
+    "love": {"jp": "日本で愛を込めて作りました", "en": "Made with love in Japan"},
     "views": {"jp": "プロフィールの閲覧数", "en": "Profile views"},
     "bear": {"jp": "手を振るクマ", "en": "Waving bear"},
 }
@@ -137,7 +137,7 @@ CREDLY: list[tuple[str, str, dict[str, str]]] = [
      {"jp": "Credlyバッジ: Introduction to Cybersecurity（Cisco）",
       "en": "Credly badge: Introduction to Cybersecurity (Cisco)"}),
 ]
-MADE_WITH_LOVE = "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge"
+MADE_WITH_LOVE = "https://madewithlove.vercel.app/jp?heart=true&amp;template=for-the-badge"
 VIEWS = "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat"
 
 
@@ -258,7 +258,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     blocks.append(_divider(lang))
     # 8. sign-off
     blocks.append(f'<p align="center"><sub>{CONNECT["signoff"](lang)}</sub></p>')
-    blocks.append(_centered(
-        f'<img src="{MADE_WITH_LOVE}" alt="{OWNER_ALT["love"][lang]}">\n'
-        f'<img src="{VIEWS}" alt="{OWNER_ALT["views"][lang]}">'))
+    # owner: views counter on its own line, below the made-with-love badge
+    blocks.append(_centered(f'<img src="{MADE_WITH_LOVE}" alt="{OWNER_ALT["love"][lang]}">'))
+    blocks.append(_centered(f'<img src="{VIEWS}" alt="{OWNER_ALT["views"][lang]}">'))
     return "\n\n".join(blocks) + "\n"

@@ -189,7 +189,7 @@ OWNER_URLS = [
     BEAR_URL,
     "https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0",
     "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262",
-    "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge",
+    "https://madewithlove.vercel.app/jp?heart=true&amp;template=for-the-badge",
     "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat",
 ]
 GREETING_LINE = {
@@ -244,9 +244,12 @@ def test_owner_footer(lang):
 
     text = _read(lang)
     signoff = text.index(CONNECT["signoff"](lang))
-    love = text.index("https://madewithlove.now.sh/")
+    love = text.index("https://madewithlove.vercel.app/jp?")
     views = text.index("https://komarev.com/ghpvc/")
     assert signoff < love < views
+    # views sits in its own paragraph, on the line below the Japan badge
+    assert "</p>" in text[love:views]
+    assert "madewithlove.now.sh" not in text and "/in?heart" not in text
 
 
 @pytest.mark.parametrize("lang", ["jp", "en"])
