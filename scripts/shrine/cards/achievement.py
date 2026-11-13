@@ -659,8 +659,11 @@ def render_picoctf(lang: Lang, fonts) -> str:
 #
 # Header: a small red pennant, the role and the team name. A lacquered panel holds the
 # headline places (best global place and best India place, each with its year) and a
-# three-step climb: one torii per year, taller as the global place improves, with the
-# place above and the year below, lit one after another.
+# three-step climb: one torii per year with the place above and the year below. The
+# climb switches between the world ranks (state A) and the India ranks (state B) on an
+# 8 s CSS loop (hold 3.4 s, crossfade 0.6 s): the gates grow and shrink from their feet,
+# the labels and the caption crossfade, and the best gate of the state glows. Inline
+# styles hold state A, so a late-loading image never shows a blank frame.
 
 CTF_PANEL = (30, 96, 380, 176)
 CTF_SPLIT = 206  # headline | climb
@@ -669,17 +672,56 @@ CTF_GROUND = 150
 CTF_YEAR_Y = 167
 TORII_VIS = (22 - 5.2) / 24  # visible height of GLYPH['torii'] per unit of icon size
 CTF_STEP_X = (240, 292, 344)
-CTF_CSS = (
-    ".lit{animation:lit .7s ease-out both}"
-    "@keyframes lit{from{opacity:.15}to{opacity:1}}"
-)
+CTF_CYCLE = 8  # s: A hold 0-42.5%, fade to 50%, B hold to 92.5%, fade back to 100%
+CTF_H_MIN, CTF_H_MAX = 14, 30  # visible torii height for the worst and the best place
 
 
-def _ctf_heights() -> list[float]:
-    """Visible torii height per year: 14 for the worst place, 30 for the best, linear in between."""
-    places = [p for _, p, _, _ in CTFTIME["years"]]
-    lo, hi = min(places), max(places)
-    return [round(14 + 16 * (hi - p) / (hi - lo), 1) if hi != lo else 22 for p in places]
+def _ctf_keys(a: str, b: str) -> str:
+    return f"0%,42.5%{{{a}}}50%,92.5%{{{b}}}100%{{{a}}}"
+
+
+def _ctf_scale(h: float) -> str:
+    """Gate scale for visible height h: mostly scaleY, with a gentler scaleX so a small gate is not squashed."""
+    sy = h / CTF_H_MAX
+    return f"scale({sy ** 0.5:.3f},{sy:.3f})"
+
+
+def _ctf_css() -> str:
+    hw, hi = _ctf_heights("world"), _ctf_heights("india")
+    bw, bi = _ctf_best("world"), _ctf_best("india")
+    gates = "".join(
+        f"@keyframes gate{k}{{{_ctf_keys('transform:' + _ctf_scale(a), 'transform:' + _ctf_scale(b))}}}"
+        f"@keyframes glow{k}{{{_ctf_keys(f'opacity:{int(k == bw)}', f'opacity:{int(k == bi)}')}}}"
+        for k, (a, b) in enumerate(zip(hw, hi))
+    )
+    return (
+        ".lit{animation:lit .7s ease-out both}"
+        "@keyframes lit{from{opacity:.15}to{opacity:1}}"
+        f".ctfA{{animation:ctfA {CTF_CYCLE}s ease-in-out infinite}}"
+        f".ctfB{{animation:ctfB {CTF_CYCLE}s ease-in-out infinite}}"
+        f"@keyframes ctfA{{{_ctf_keys('opacity:1', 'opacity:0')}}}"
+        f"@keyframes ctfB{{{_ctf_keys('opacity:0', 'opacity:1')}}}"
+        ".gate{transform-box:fill-box;transform-origin:50% 100%}"
+        + gates
+    )
+
+
+def _ctf_ranks(state: str) -> list[int]:
+    return [w if state == "world" else n for _, w, _, n in CTFTIME["years"]]
+
+
+def _ctf_best(state: str) -> int:
+    ranks = _ctf_ranks(state)
+    return ranks.index(min(ranks))
+
+
+def _ctf_heights(state: str) -> list[float]:
+    """Visible torii height per year: the best place gets CTF_H_MAX, the worst CTF_H_MIN,
+    linear in the place in between (the smallest gate stays readable)."""
+    ranks = _ctf_ranks(state)
+    best, worst = min(ranks), max(ranks)
+    span = CTF_H_MAX - CTF_H_MIN
+    return [round(CTF_H_MIN + span * (1 - (r - best) / (worst - best + 1e-9)), 1) for r in ranks]
 
 
 def _pennant(x: float, y: float) -> str:
@@ -731,27 +773,45 @@ def _ctf_tablet(lang: Lang, i: int) -> str:
             f'<text x="{x0 + 14}" y="{y}" {SERIF} font-size="{CTF_HEAD}" font-weight="700" fill="{colour}">{esc(label)}</text>'
             f'<text x="{_g(x0 + 14 + lw + 8)}" y="{y}" {SERIF} font-size="14" fill="{P["text-soft-b"]}">{year}</text>'
         )
-    # the climb
-    hs = _ctf_heights()
+    # the climb: world ranks (A) <-> India ranks (B)
+    hw, hi = _ctf_heights("world"), _ctf_heights("india")
+    bw, bi = _ctf_best("world"), _ctf_best("india")
+    size = CTF_H_MAX / TORII_VIS
+    soft, gold = P["text-soft-a"], P["lantern-gold"]
     steps = []
-    for k, ((year, place, _pts, _in), h, sx) in enumerate(zip(years, hs, CTF_STEP_X)):
-        best = place == best_world[1]
-        colour = P["vermilion"] if best else "#b8402c"
-        size = h / TORII_VIS
-        top = CTF_GROUND - h
+    for k, ((year, world, _pts, india), sx) in enumerate(zip(years, CTF_STEP_X)):
+        anim = f"{CTF_CYCLE}s ease-in-out infinite"
+        glow_a = int(k == bw)
         steps.append(
-            f'<g class="step" data-year="{year}" data-place="{place}" data-h="{h:g}">'
+            f'<g class="step" data-year="{year}" data-world="{world}" data-india="{india}" data-hw="{hw[k]:g}" data-hi="{hi[k]:g}">'
             f'<g class="lit" style="animation-delay:{0.35 * k + 0.2:g}s">'
-            + (f'<ellipse cx="{sx}" cy="{_g(top + h / 2)}" rx="20" ry="{_g(h * 0.7)}" fill="url(#lanternGlow)" opacity="0.45" class="lglow"/>' if best else "")
-            + icon("torii", sx - size / 2, CTF_GROUND - size * 22 / 24, size, colour)
-            + f'<text x="{sx}" y="{_g(top - 5)}" text-anchor="middle" {SERIF} font-size="14" font-weight="700" '
-            f'fill="{P["lantern-gold"] if best else P["text-soft-a"]}">#{place}</text></g>'
+            f'<ellipse cx="{sx}" cy="{_g(CTF_GROUND - CTF_H_MAX / 2)}" rx="20" ry="21" fill="url(#lanternGlow)" class="lglow" '
+            f'style="opacity:{glow_a * 0.5:g};animation:glow{k} {anim}"/>'
+            f'<g class="gate" style="transform:{_ctf_scale(hw[k])};animation:gate{k} {anim}">'
+            + icon("torii", sx - size / 2, CTF_GROUND - size * 22 / 24, size, "#b8402c")
+            + f'<g style="opacity:{glow_a};animation:glow{k} {anim}">'
+            + icon("torii", sx - size / 2, CTF_GROUND - size * 22 / 24, size, P["vermilion"])
+            + "</g></g>"
+            f'<text class="ctfA" x="{sx}" y="{_g(CTF_GROUND - hw[k] - 4)}" text-anchor="middle" {SERIF} font-size="14" '
+            f'font-weight="700" fill="{gold if k == bw else soft}" style="opacity:1">#{world}</text>'
+            f'<text class="ctfB" x="{sx}" y="{_g(CTF_GROUND - hi[k] - 4)}" text-anchor="middle" {SERIF} font-size="14" '
+            f'font-weight="700" fill="{gold if k == bi else soft}" style="opacity:0">#{india}</text></g>'
             f'<text x="{sx}" y="{CTF_YEAR_Y}" text-anchor="middle" {SERIF} font-size="14" fill="{P["text-soft-b"]}">{year}</text>'
             "</g>"
         )
+    # the state caption sits above the gate that is lowest in both states
+    k_low = min(range(len(years)), key=lambda k: max(hw[k], hi[k]))
+    cap_y = CTF_GROUND - max(hw[k_low], hi[k_low]) - 4 - 16
+    cap_x = CTF_STEP_X[k_low]
+    caption = "".join(
+        f'<text class="{cls}" x="{cap_x}" y="{_g(cap_y)}" text-anchor="middle" {SERIF} font-size="14" font-weight="700" '
+        f'fill="{P["sakura-a"]}" letter-spacing="1" style="opacity:{op}">{esc(CTFTIME["state"][st](lang))}</text>'
+        for cls, st, op in (("ctfA", "world", 1), ("ctfB", "india", 0))
+    )
     climb = (
         f'<path d="M{CTF_SPLIT + 14},{CTF_GROUND} H{x1 - 12}" stroke="{P["text-soft-b"]}" stroke-opacity="0.5" stroke-width="1"/>'
         + "".join(steps)
+        + caption
     )
     return _hanging(i) + head + panel + "".join(lines) + climb
 
@@ -760,6 +820,6 @@ def render_ctftime(lang: Lang, fonts) -> str:
     """CTFtime team places (content.CTFTIME) on a tablet of the achievements family, 410x200."""
     i = len(ACHIEVEMENTS) + 2
     years = CTFTIME["years"]
-    summary = ", ".join(f"{y}: #{p}" for y, p, _, _ in years)
+    summary = ", ".join(f"{y}: #{p} / #{n}" for y, p, _, n in years)
     title = f"{CTFTIME['role'](lang)} · {CTFTIME['team']} · CTFtime {summary}"
-    return _card(i, -1.7, _ctf_tablet(lang, i), title, P["vermilion"], fonts, css=CTF_CSS, defs=_hr_defs())
+    return _card(i, -1.7, _ctf_tablet(lang, i), title, P["vermilion"], fonts, css=_ctf_css(), defs=_hr_defs())

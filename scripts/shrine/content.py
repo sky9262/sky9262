@@ -317,6 +317,8 @@ CTFTIME: dict = {
     "role": T("チームメンバー", "Team member"),
     "world": T("世界{n}位", "World #{n}"),
     "india": T("インド{n}位", "India #{n}"),
+    # caption of the climb, which switches between the two rank sets
+    "state": {"world": T("世界", "World"), "india": T("インド", "India")},
 }
 
 # ---------------------------------------------------------------- connect

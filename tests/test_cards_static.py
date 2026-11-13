@@ -810,14 +810,28 @@ def test_ctftime(fonts, lang):
     assert CTFTIME["role"](lang) in seen and "warlock_rootx" in seen
     assert CTFTIME["world"](lang).format(n=39) in seen  # best global place, 2021
     assert CTFTIME["india"](lang).format(n=2) in seen  # best India place, 2020
-    for year, place, _pts, _in in CTFTIME["years"]:
+    for year, place, _pts, india in CTFTIME["years"]:
         assert str(year) in seen
-        assert f"#{place}" in seen
-    # the climb: one step per year, rising as the place improves
-    steps = re.findall(r'class="step" data-year="(\d+)" data-place="(\d+)" data-h="([\d.]+)"', svg)
-    assert [int(y) for y, _, _ in steps] == [2019, 2020, 2021]
-    hs = [float(h) for _, _, h in steps]
-    assert hs == sorted(hs) and len(set(hs)) == 3
+        assert f"#{place}" in seen and f"#{india}" in seen  # both rank sets
+    assert CTFTIME["state"]["world"](lang) in seen and CTFTIME["state"]["india"](lang) in seen
+    # the climb: one step per year; heights per state rise as the place improves
+    steps = re.findall(
+        r'class="step" data-year="(\d+)" data-world="(\d+)" data-india="(\d+)" data-hw="([\d.]+)" data-hi="([\d.]+)"', svg
+    )
+    assert [int(y) for y, *_ in steps] == [2019, 2020, 2021]
+    for ranks, hs in (([int(w) for _, w, _, _, _ in steps], [float(h) for *_, h, _ in steps]),
+                      ([int(n) for _, _, n, _, _ in steps], [float(h) for *_, h in steps])):
+        order = sorted(range(3), key=lambda k: ranks[k])  # best place first
+        assert [hs[k] for k in order] == sorted(hs, reverse=True), (ranks, hs)
+        assert min(hs) >= 14
+    # the world/India switch: CSS keyframes only, ~8 s, gates scale from the bottom
+    assert "@keyframes ctfA{" in svg and "@keyframes ctfB{" in svg
+    for k in range(3):
+        assert f"@keyframes gate{k}{{" in svg and f"@keyframes glow{k}{{" in svg
+    assert "animation:ctfA 8s" in svg and "transform-origin:50% 100%" in svg
+    assert "transform-box:fill-box" in svg
+    # a visible default (state A) if animations have not started
+    assert re.search(r'class="ctfB"[^>]*style="opacity:0', svg)
     assert re.search(r'class="sway"', svg) and "@font-face" in svg
     for e in EMOJI + ("🇮🇳", "🏁"):
         assert e not in svg
