@@ -6,7 +6,11 @@ from scripts.shrine.content import (
 )
 
 RAW = "https://raw.githubusercontent.com/sky9262/sky9262"
+BLOB = "https://github.com/sky9262/sky9262/blob"
 FILE = {"jp": "README.md", "en": "README-EN.md"}
+# the source branch whose READMEs the toggle opens: the test build lives on
+# profile-v2 until go-live, when the `output` build is committed to main
+SOURCE_BRANCH = {"output": "main", "output-test": "profile-v2"}
 
 # alt text per image, in the README's language
 ALT: dict[str, dict[str, str]] = {
@@ -16,7 +20,7 @@ ALT: dict[str, dict[str, str]] = {
     "stack": {"jp": "道具: 技術スタック", "en": "Tech stack"},
     "torii": {"jp": "千本鳥居: 活動の入り口", "en": "Torii gate path into my activity"},
     "feed": {"jp": "今週の参拝: 直近7日間の毎日の貢献数", "en": "This week: contributions on each of the last 7 days"},
-    "stat-contrib": {"jp": "今年の貢献数", "en": "Contributions this year"},
+    "stat-contrib": {"jp": "過去1年の貢献数", "en": "Contributions in the last year"},
     "stat-month": {"jp": "直近30日の貢献数", "en": "Contributions in the last 30 days"},
     "stat-peak": {"jp": "最も貢献の多かった一日", "en": "Busiest day of the year"},
     "stat-stars": {"jp": "獲得スター数", "en": "Stars earned"},
@@ -88,13 +92,19 @@ def _divider(lang: str) -> str:
     return _centered(f'<img src="{DIVIDER}" width="100%" alt="{ALT["divider"][lang]}">')
 
 
-def render_readme(lang: Lang, output_branch: str) -> str:
+def toggle_href(lang: Lang, output_branch: str) -> str:
+    """Absolute link to the other-language README on the matching source branch.
+    (A relative link from the profile page would resolve against the profile URL.)"""
     other = FILE["en" if lang == "jp" else "jp"]
+    return f"{BLOB}/{SOURCE_BRANCH[output_branch]}/{other}"
+
+
+def render_readme(lang: Lang, output_branch: str) -> str:
     blocks: list[str] = []
 
     # 1. toggle
     blocks.append(
-        f'<p align="right"><a href="{other}">'
+        f'<p align="right"><a href="{toggle_href(lang, output_branch)}">'
         f'<img src="assets/{lang}/toggle.svg" width="140" alt="{ALT["toggle"][lang]}"></a></p>'
     )
     # 2. hero

@@ -63,7 +63,9 @@ jobs:
 
   keepalive:
     needs: generate
-    if: github.ref == 'refs/heads/main'
+    # always(): a failing generate (e.g. an expired token) must not let GitHub
+    # auto-disable the schedule after 60 days without repo activity
+    if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

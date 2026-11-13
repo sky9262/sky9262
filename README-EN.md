@@ -1,4 +1,4 @@
-<p align="right"><a href="README.md"><img src="assets/en/toggle.svg" width="140" alt="Switch to Japanese"></a></p>
+<p align="right"><a href="https://github.com/sky9262/sky9262/blob/profile-v2/README.md"><img src="assets/en/toggle.svg" width="140" alt="Switch to Japanese"></a></p>
 
 <picture><source media="(max-width: 600px)" srcset="assets/en/hero-phone.svg"><img src="assets/en/hero-desktop.svg" width="100%" alt="Akash Kumar, AI and Security Engineer: night shrine profile banner"></picture>
 
@@ -38,7 +38,7 @@
 <picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-desktop.svg" width="100%" alt="This week: contributions on each of the last 7 days"></picture>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-contrib.svg" width="410" alt="Contributions this year">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-contrib.svg" width="410" alt="Contributions in the last year">
 <img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-month.svg" width="410" alt="Contributions in the last 30 days">
 </p>
 

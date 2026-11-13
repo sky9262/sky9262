@@ -605,8 +605,10 @@ def test_connect(fonts, lang, layout):
     assert f'viewBox="{CONNECT_VIEWBOX[layout]}"' in svg
     seen = visible_strings(svg)
     joined = _norm(seen, lang)
-    for key in ("heading", "bell", "signoff"):
+    for key in ("heading", "bell"):
         assert CONNECT[key](lang) in joined, key
+    # the sign-off is the README footer only (it was duplicated here, low contrast)
+    assert CONNECT["signoff"](lang) not in joined
     for part in SECTION["connect"](lang).split(" · "):
         assert part in seen
     assert re.search(r'class="sway"', svg)  # the bell and its rope swing
@@ -639,6 +641,18 @@ def test_button(fonts, lid, label):
         assert e not in svg
     for other in ("English", "日本語"):
         assert other not in svg  # language-neutral
+
+
+@pytest.mark.parametrize("lid,label", [(l, lab) for l, lab, _ in LINKS], ids=[l for l, _, _ in LINKS])
+def test_button_label_clears_chevron(lid, label):
+    from scripts.shrine.cards import button as b
+    from scripts.shrine.metrics import text_width
+
+    assert b.LABEL_X + b.LABEL_MAX < b.CHEVRON_X
+    size = b._fit(label, b.LABEL_SIZE, b.LABEL_MAX)
+    assert text_width(label, size, weight=700, letter_spacing=0.3) <= b.LABEL_MAX, (label, size)
+    if lid == "huggingface":
+        assert size == b.LABEL_SIZE  # the longest label still fits at full size
 
 
 def test_buttons_cover_links(fonts):

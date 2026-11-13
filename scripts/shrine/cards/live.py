@@ -12,9 +12,9 @@
     the busiest day glows lantern-gold, today has a gold band. Desktop: one row of 7;
     phone: 4 + 3 on two ropes. Written to feed-{desktop,phone}.svg.
   * Stat plaques: small wooden votive tablets (same family as the achievements) with
-    an emblem in a lacquered window and a big carved number: contributions this year,
-    the last 30 days (with the daily average), the busiest day (with its date) and
-    stars. 410x200.
+    an emblem in a lacquered window and a big carved number: contributions in the
+    last year (the 365-day calendar), the last 30 days (with the daily average), the
+    busiest day (with its date) and stars. 410x200.
   * Language ensō (円相): a tapered brush circle split by the top 5 languages + other,
     painted on with a mask on load, with a legend. 410x410.
   * Shrine hours: a moon dial; four JST buckets (朝/昼/夕/夜) as petals of light whose
@@ -528,6 +528,8 @@ def fortune_tier(n: int) -> str:
 
 
 def _week_dates(now: datetime) -> list[date]:
+    # "today" is the UTC date, the same day boundary as the contributions calendar
+    # fetched for [now - 365 days, now] in UTC; naive datetimes are taken as UTC
     end = now.astimezone(timezone.utc).date() if now.tzinfo else now.date()
     return [end - timedelta(days=6 - k) for k in range(7)]
 

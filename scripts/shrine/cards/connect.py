@@ -4,8 +4,9 @@ A large honzuzu bell (本坪鈴) hangs from the shimenawa with its red-and-white
 rope (鈴緒) and tasselled end. The whole bell swings on the shared 5 s sway; every
 RING_S seconds it gives a small ring: the bell jiggles, two sound rings spread from
 it, a sheen crosses the bronze and a glint flashes on its shoulder. Beside it (below
-it on phones): the CONNECT heading, the bell line, a decorative row of the seven link
-glyphs strung on a red thread of fate (赤い糸, the ご縁 itself) and the sign-off.
+it on phones): the CONNECT heading, the bell line and a decorative row of the seven
+link glyphs strung on a red thread of fate (赤い糸, the ご縁 itself). The sign-off is
+the README footer, not part of this card.
 
 The card has no click targets: the seven links are separate button images in the
 README. Desktop: viewBox 1200x360 shown at 846 px; phone: 600x560 shown at 360 px.
@@ -33,10 +34,11 @@ HEAD_Y = {"desktop": 42, "phone": 46}
 # bell centre, radius, bell-rope length (from the bell's lip to the tassel cap)
 BELL = {"desktop": (250, 150, 54, 108), "phone": (300, 152, 50, 84)}
 
-# copy: (centre x, heading y, heading size, bell-line y, bell-line size, row y, sign-off y, sign-off size)
+# copy: (centre x, heading y, heading size, bell-line y, bell-line size, row y);
+# the block sits centred in the space under the rope (desktop) / under the bell (phone)
 COPY = {
-    "desktop": dict(cx=770, head_y=150, head=46, line_y=198, line=22, row_y=256, sign_y=326, sign=18),
-    "phone": dict(cx=300, head_y=368, head=40, line_y=412, line=22, row_y=468, sign_y=534, sign=20),
+    "desktop": dict(cx=770, head_y=174, head=46, line_y=222, line=22, row_y=280),
+    "phone": dict(cx=300, head_y=392, head=40, line_y=436, line=22, row_y=492),
 }
 LINE_W = {"desktop": 640, "phone": 548}
 ROUNDEL_R = 21
@@ -239,7 +241,6 @@ def _copy(lang: Lang, layout: Layout) -> str:
         f'<rect x="{_g(x + (10 if s > 0 else -70))}" y="{_g(orn_y - 0.6)}" width="60" height="1.2" fill="url(#{"ruleR" if s > 0 else "ruleL"})"/>'
         for x, s in ((cx + hw / 2 + 14, 1), (cx - hw / 2 - 14, -1))
     )
-    sign = CONNECT["signoff"](lang)
     return (
         '<g filter="url(#lift)">'
         f'<g class="rise"><text x="{_g(cx + ls / 2)}" y="{c["head_y"]}" text-anchor="middle" {SERIF} font-size="{c["head"]}" '
@@ -247,8 +248,6 @@ def _copy(lang: Lang, layout: Layout) -> str:
         f'<g class="rise d1">{line_svg}</g>'
         "</g>"
         + f'<g class="rise d1">{_row(layout)}</g>'
-        + f'<g class="rise d2"><text x="{_g(cx)}" y="{c["sign_y"]}" text-anchor="middle" {SERIF} font-size="{c["sign"]}" '
-        f'fill="{P["text-soft-b"]}" letter-spacing="1">{esc(sign)}</text></g>'
     )
 
 

@@ -1,4 +1,4 @@
-<p align="right"><a href="README-EN.md"><img src="assets/jp/toggle.svg" width="140" alt="English版を開く"></a></p>
+<p align="right"><a href="https://github.com/sky9262/sky9262/blob/profile-v2/README-EN.md"><img src="assets/jp/toggle.svg" width="140" alt="English版を開く"></a></p>
 
 <picture><source media="(max-width: 600px)" srcset="assets/jp/hero-phone.svg"><img src="assets/jp/hero-desktop.svg" width="100%" alt="夜の神社 アカシュ・クマァ（Akash Kumar）のプロフィール"></picture>
 
@@ -38,7 +38,7 @@
 <picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-desktop.svg" width="100%" alt="今週の参拝: 直近7日間の毎日の貢献数"></picture>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-contrib.svg" width="410" alt="今年の貢献数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-contrib.svg" width="410" alt="過去1年の貢献数">
 <img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-month.svg" width="410" alt="直近30日の貢献数">
 </p>
 

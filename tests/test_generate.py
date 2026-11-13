@@ -593,3 +593,19 @@ def test_entry_never_prints_a_traceback(monkeypatch, capsys):
     err = capsys.readouterr().err
     assert err.strip() == "error: ValueError"
 
+
+EARLY_WARNING_KB = 480  # the hard limit is 500 KB; leave headroom for real data
+
+
+def test_live_cards_stay_under_early_warning_size():
+    """Every live card from the fixtures, with the real kitsune sheet when present,
+    stays <= 480 KB in both languages, so growth shows up before the 500 KB limit."""
+    svgs = gen.render_all(load_fixture(FIX), gen.parse_now(NOW), [])
+    assert len(svgs) == 22
+    assert {rel.split("/")[0] for rel in svgs} == {"jp", "en"}
+    if gen.KITSUNE.exists():
+        assert all("data:image/png" in svgs[f"{lang}/torii-{lay}.svg"]
+                   for lang in ("jp", "en") for lay in ("desktop", "phone"))
+    big = {rel: len(svg.encode("utf-8")) for rel, svg in svgs.items()
+           if len(svg.encode("utf-8")) > EARLY_WARNING_KB * 1024}
+    assert not big, big

@@ -10,7 +10,8 @@ LABELS: dict[str, dict[str, str]] = {
     # ---- torii path (千本鳥居)
     "torii_title": {"jp": "千本鳥居", "en": "Torii Path"},
     "torii_caption": {"jp": "鳥居一基＝一週間の貢献", "en": "one gate for each week · 千本鳥居"},
-    "torii_total": {"jp": "今年の貢献", "en": "contributions this year"},
+    # the calendar covers the last 365 days, not the calendar year
+    "torii_total": {"jp": "過去1年の貢献", "en": "contributions in the last year"},
     "torii_peak": {"jp": "最多の週", "en": "busiest week"},
     "torii_now": {"jp": "今週", "en": "this week"},
     # month names, comma separated, January first
@@ -26,10 +27,12 @@ LABELS: dict[str, dict[str, str]] = {
     "weekdays": {"jp": "月,火,水,木,金,土,日", "en": "Mon,Tue,Wed,Thu,Fri,Sat,Sun"},
     # fortune seals by tier, lowest first (0, 1-9, 10-29, 30-49, 50+); kind: 休 = rest
     "fortune_tiers": {"jp": "休,小吉,中吉,吉,大吉", "en": "休,小吉,中吉,吉,大吉"},
+    # never looked up by key: it is here so "…" lands in the runtime font subset
+    # (live.fit / _fit_w cut long language names on the ensō and hours cards with it)
     "ellipsis": {"jp": "…", "en": "…"},
     # ---- stat plaques
-    "stat_contrib": {"jp": "今年の貢献", "en": "Contributions"},
-    "stat_contrib_sub": {"jp": "非公開の仕事も含む", "en": "this year · incl. private"},
+    "stat_contrib": {"jp": "過去1年の貢献", "en": "Contributions"},
+    "stat_contrib_sub": {"jp": "非公開の仕事も含む", "en": "in the last year · incl. private"},
     "stat_month": {"jp": "直近30日の貢献", "en": "Last 30 days"},
     "stat_month_sub": {"jp": "1日平均 {avg}", "en": "avg {avg} a day"},
     "stat_peak": {"jp": "最も熱い一日", "en": "Busiest day"},

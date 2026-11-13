@@ -24,7 +24,8 @@ GOLD_DARK = "#9a6424"
 
 BW, BH = 220, 56
 LABEL_X = 60
-LABEL_MAX = 196 - LABEL_X  # stop short of the chevron
+CHEVRON_X = 201  # left edge of the chevron path
+LABEL_MAX = 190 - LABEL_X  # stop 11 units short of the chevron
 LABEL_SIZE = 18
 MIN_SIZE = 12
 
@@ -103,7 +104,7 @@ def render_button(link_id: str, fonts) -> str:
         + icon(link_id, 31 - 9.5, cy - 9.5, 19, color)
         + f'<text x="{LABEL_X}" y="{_g(cy + size * 0.36)}" {SERIF} font-size="{_g(size)}" font-weight="700" '
         f'fill="{P["moon-a"]}" letter-spacing="0.3">{esc(label)}</text>'
-        f'<g class="nudge"><path d="M201,{_g(cy - 5.5)} l5.5,5.5 l-5.5,5.5" fill="none" stroke="{P["lantern-gold"]}" '
+        f'<g class="nudge"><path d="M{CHEVRON_X},{_g(cy - 5.5)} l5.5,5.5 l-5.5,5.5" fill="none" stroke="{P["lantern-gold"]}" '
         'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>'
     )
     svg = document(BW, BH, body, title=label, css=BUTTON_CSS, defs=defs)

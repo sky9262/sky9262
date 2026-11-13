@@ -62,10 +62,44 @@ def test_build_deterministic(fonts):
     assert render_cando("jp", "phone", fonts) == render_cando("jp", "phone", fonts)
 
 
+BLOB = "https://github.com/sky9262/sky9262/blob/"
+
+
+def _branch(text: str) -> str:
+    branches = {u[len(OUT):].split("/")[0] for u in _srcs(text) if u.startswith(OUT)}
+    assert len(branches) == 1, branches
+    return branches.pop()
+
+
+def test_readmes_share_one_output_branch():
+    """Both READMEs point at the same single output branch (built together)."""
+    jp, en = _branch(_read("jp")), _branch(_read("en"))
+    assert jp == en, (jp, en)
+    assert jp in {"output", "output-test"}
+
+
+@pytest.mark.parametrize(
+    "branch,source", [("output-test", "profile-v2"), ("output", "main")]
+)
+def test_toggle_href_is_absolute_and_branch_aware(branch, source):
+    from scripts.build.readme import render_readme, toggle_href
+
+    assert toggle_href("jp", branch) == f"{BLOB}{source}/README-EN.md"
+    assert toggle_href("en", branch) == f"{BLOB}{source}/README.md"
+    jp, en = render_readme("jp", branch), render_readme("en", branch)
+    assert f'<a href="{BLOB}{source}/README-EN.md">' in jp
+    assert f'<a href="{BLOB}{source}/README.md">' in en
+    assert "README.md" not in jp.replace("README-EN.md", "")
+
+
 def test_toggle_links():
-    assert 'href="README-EN.md"' in _read("jp")
-    assert 'href="README.md"' in _read("en")
+    """The committed READMEs' toggles match their output branch."""
+    source = {"output-test": "profile-v2", "output": "main"}[_branch(_read("jp"))]
+    assert f'href="{BLOB}{source}/README-EN.md"' in _read("jp")
+    assert f'href="{BLOB}{source}/README.md"' in _read("en")
     assert "README.md" not in _read("jp").replace("README-EN.md", "")
+    for lang in FILES:
+        assert 'href="README' not in _read(lang)  # never relative
 
 
 def test_alt_language():
