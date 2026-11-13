@@ -875,8 +875,9 @@ def _thm_images(badges=THM_BADGES) -> dict:
 def test_thm_badges_data():
     assert [s for s, _ in THM_BADGES] == [
         "introtooffensivesecurity", "streak7", "ohsint", "linux", "metasploit",
-        "ice", "hashcracker", "blue", "adventofcyber", "burpsuite",
+        "ice", "hashcracker", "blue", "adventofcyber", "burpsuite", "introtowebsecurity",
     ]
+    assert dict(THM_BADGES)["introtowebsecurity"] == "Intro to Web Hacking"
     assert dict(THM_BADGES)["burpsuite"] == "Burp'ed"
     for slug, _ in THM_BADGES:
         data = (THM_ART / f"{slug}.png").read_bytes()
@@ -909,26 +910,25 @@ def test_thm_shelf(fonts, lang, layout):
 
 
 @pytest.mark.parametrize("layout", ["desktop", "phone"])
-def test_thm_shelf_fits_eleven(fonts, layout):
-    """An 11th badge (Intro to Web Hacking, coming) fits: here a duplicate image stands in."""
-    from scripts.shrine.cards.thm_shelf import plan, render_thm_shelf
+def test_thm_shelf_rows(fonts, layout):
+    """The 11 badges sit in balanced rows (desktop 6 + 5), fuller rows first; a 12th still fits."""
+    from scripts.shrine.cards.thm_shelf import SLOT_W, plan, render_thm_shelf
 
-    eleven = THM_BADGES + [("ice", "Intro to Web Hacking")]
-    svg = render_thm_shelf("en", layout, fonts, _thm_images(), badges=eleven)
+    w = SHELF_W[layout]
+    for badges in (THM_BADGES, THM_BADGES + [("ice", "Another Badge")]):
+        h, slots = plan(len(badges), layout)
+        assert len(slots) == len(badges)
+        rows = sorted({y for _, y in slots})
+        counts = [sum(1 for _, y in slots if y == r) for r in rows]
+        assert max(counts) - min(counts) <= 1 and counts == sorted(counts, reverse=True)
+        for x, y in slots:
+            assert x - SLOT_W[layout] / 2 >= 0 and x + SLOT_W[layout] / 2 <= w and 0 < y < h
+    assert [sum(1 for _, y in plan(11, layout)[1] if y == r) for r in sorted({y for _, y in plan(11, layout)[1]})] == (
+        [6, 5] if layout == "desktop" else [3, 3, 3, 2]
+    )
+    svg = render_thm_shelf("en", layout, fonts, _thm_images(), badges=THM_BADGES + [("ice", "Another Badge")])
     assert_valid_svg(svg)
     assert_under(svg, 500)
-    assert "Intro to Web Hacking" in " ".join(visible_strings(svg).split())
-    h, slots = plan(len(eleven), layout)
-    assert len(slots) == 11
-    rows = sorted({y for _, y in slots})
-    counts = [sum(1 for _, y in slots if y == r) for r in rows]
-    assert max(counts) - min(counts) <= 1 and counts == sorted(counts, reverse=True)
-    if layout == "desktop":
-        assert counts == [6, 5]
-    w = SHELF_W[layout]
-    from scripts.shrine.cards.thm_shelf import SLOT_W
-    for x, y in slots:
-        assert x - SLOT_W[layout] / 2 >= 0 and x + SLOT_W[layout] / 2 <= w and 0 < y < h
 
 
 def test_thm_shelf_missing_image(fonts):

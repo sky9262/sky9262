@@ -83,7 +83,7 @@
 </p>
 
 <p align="center">
-<a href="https://tryhackme.com/p/sky9262"><picture><source media="(max-width: 600px)" srcset="assets/en/thm-shelf-phone.svg"><img src="assets/en/thm-shelf-desktop.svg" width="100%" alt="TryHackMe badges (top 5 percent, longest streak 253 days): Pentesting Principles, 7 Day Streak, OhSINT, cat linux.txt, Metasploitable, Ice, Hash Cracker, Blue, Advent of Cyber 3, Burp'ed"></picture></a>
+<a href="https://tryhackme.com/p/sky9262"><picture><source media="(max-width: 600px)" srcset="assets/en/thm-shelf-phone.svg"><img src="assets/en/thm-shelf-desktop.svg" width="100%" alt="TryHackMe badges (top 5 percent, longest streak 253 days): Pentesting Principles, 7 Day Streak, OhSINT, cat linux.txt, Metasploitable, Ice, Hash Cracker, Blue, Advent of Cyber 3, Burp'ed, Intro to Web Hacking"></picture></a>
 </p>
 
 <p align="center">

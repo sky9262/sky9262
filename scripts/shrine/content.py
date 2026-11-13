@@ -325,8 +325,9 @@ CTFTIME: dict = {
 # Checked 2026-11-13 against the owner's profile. Images are TryHackMe's public
 # badge PNGs (assets.tryhackme.com/img/badges/<slug>.png), downscaled into
 # scripts/build/art/thm/ by scripts.build.thm_art. Note: "burpsuite" is the Burp'ed
-# badge; "burped.png" is a different (wizard) image. "Intro to Web Hacking" is still
-# missing its image; add it here as one more line once the owner sends it.
+# badge; "burped.png" is a different (wizard) image. "introtowebsecurity" (Intro to
+# Web Hacking) was sent by the owner on 2026-11-13. A new badge is one more line here
+# plus its downscaled image.
 THM_BADGES: list[tuple[str, str]] = [
     ("introtooffensivesecurity", "Pentesting Principles"),
     ("streak7", "7 Day Streak"),
@@ -338,6 +339,7 @@ THM_BADGES: list[tuple[str, str]] = [
     ("blue", "Blue"),
     ("adventofcyber", "Advent of Cyber 3"),
     ("burpsuite", "Burp'ed"),
+    ("introtowebsecurity", "Intro to Web Hacking"),
 ]
 THM_PROFILE = "https://tryhackme.com/p/sky9262"
 THM_SHELF: dict[str, T] = {
