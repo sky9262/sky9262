@@ -124,6 +124,9 @@
 <p align="center"><sub>ご参拝いただき、ありがとうございました。</sub></p>
 
 <p align="center">
-<img src="https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge" alt="インドで愛を込めて作りました">
+<img src="https://madewithlove.vercel.app/jp?heart=true&amp;template=for-the-badge" alt="日本で愛を込めて作りました">
+</p>
+
+<p align="center">
 <img src="https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat" alt="プロフィールの閲覧数">
 </p>

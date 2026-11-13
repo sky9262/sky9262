@@ -124,6 +124,9 @@
 <p align="center"><sub>Thanks for visiting the shrine.</sub></p>
 
 <p align="center">
-<img src="https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge" alt="Made with love in India">
+<img src="https://madewithlove.vercel.app/jp?heart=true&amp;template=for-the-badge" alt="Made with love in Japan">
+</p>
+
+<p align="center">
 <img src="https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat" alt="Profile views">
 </p>
