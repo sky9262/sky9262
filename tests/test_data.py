@@ -11,10 +11,8 @@ import pytest
 from scripts.generate import github_data as gd
 from scripts.generate.github_data import (
     Data,
-    Event,
     FetchError,
     fetch,
-    filter_events,
     hour_buckets,
     load_fixture,
 )
@@ -39,7 +37,6 @@ def test_parse_fixture():
     # 6 owned non-fork public repos; the fork node in the fixture is dropped
     assert d.public_repos == 6
     assert d.stars == 87 + 2 + 0 + 0 + 0 + 0
-    assert d.followers == 29
     assert d.live["sky9262/phishEye"] == (87, 24)
     assert "sky9262/forked-example" not in d.live
     names = [n for n, _, _ in d.languages]
@@ -47,40 +44,10 @@ def test_parse_fixture():
     sizes = [b for _, b, _ in d.languages]
     assert sizes == sorted(sizes, reverse=True)
     assert all(re.fullmatch(r"#[0-9A-Fa-f]{6}", c) for _, _, c in d.languages)
-    # 17 recorded events, of which 2 PR + 1 member event have no Event kind
-    assert len(d.events) == 14
-    kinds = {e.kind for e in d.events}
-    assert kinds == {"push", "create", "release", "star", "fork"}
-    assert all(e.at.tzinfo is not None for e in d.events)
     # commits_*.json: 1 + 4 + 16
     assert len(d.commit_times) == 21
     assert all(t.tzinfo is not None for t in d.commit_times)
     assert d.private_repo_names == ["private-one", "private-two", "private-three", "private-four"]
-
-
-def test_recent_repos():
-    """Own public non-fork repos by most recent push (UTC, newest first) for the feed
-    backfill. The profile repo itself is left out: the generator's force-push to the
-    output branch bumps its pushedAt every run."""
-    d = load_fixture(FIX)
-    names = [n for n, _ in d.recent_repos]
-    assert names == [
-        "sky9262/hermes-run",
-        "sky9262/cinematic-glb2particle-skill",
-        "sky9262/voice_identify",
-        "sky9262/winLock",
-        "sky9262/phishEye",
-    ]
-    times = [t for _, t in d.recent_repos]
-    assert times == sorted(times, reverse=True)
-    assert all(t.tzinfo is not None and t.utcoffset() == timedelta(0) for t in times)
-    assert d.recent_repos[0][1] == datetime(2026, 6, 26, 5, 51, 53, tzinfo=timezone.utc)
-    assert "sky9262/forked-example" not in names
-
-
-def test_recent_repos_default_empty():
-    d = Data("x", [], 0, 0, 0, 0, [], [], [], {}, [])
-    assert d.recent_repos == []
 
 
 def test_fixtures_are_anonymised():
@@ -113,31 +80,6 @@ def test_hour_buckets_boundaries():
     assert hour_buckets([at(21)])["yoru"] == 1
     assert hour_buckets([at(4)])["yoru"] == 1
     assert hour_buckets([]) == {"asa": 0, "hiru": 0, "yu": 0, "yoru": 0}
-
-
-# ---------- filter_events ----------
-
-
-def _ev(kind, repo):
-    return Event(kind=kind, repo=repo, at=NOW)
-
-
-def test_filter_events_drops_foreign_and_denied():
-    evs = [
-        _ev("push", "example-org/x"),
-        _ev("star", "foo/bar"),
-        _ev("star", "example-org/y"),
-        _ev("push", "sky9262/phishEye"),
-    ]
-    assert filter_events(evs[:2], "sky9262", []) == [evs[1]]
-    out = filter_events(evs, "sky9262", ["example-org"])
-    assert out == [evs[1], evs[3]]
-
-
-def test_filter_events_deny_is_case_insensitive_and_ignores_blanks():
-    evs = [_ev("push", "sky9262/Secret-Thing"), _ev("fork", "foo/bar")]
-    assert filter_events(evs, "sky9262", ["", "  ", "secret"]) == [evs[1]]
-    assert filter_events(evs, "SKY9262", ["\n"]) == evs
 
 
 # ---------- fetch (urlopen monkeypatched; no network) ----------
@@ -177,8 +119,6 @@ class FakeGitHub:
                 return action(req)
         if url.endswith("/graphql"):
             return _Resp(json.loads((FIX / "graphql.json").read_text()))
-        if "/events/public" in url:
-            return _Resp(json.loads((FIX / "events.json").read_text()))
         if "/user/repos" in url:
             return _Resp(json.loads((FIX / "private_repos.json").read_text()))
         m = re.search(r"/repos/sky9262/([^/]+)/commits", url)
@@ -200,7 +140,7 @@ def test_fetch_matches_fixture(monkeypatch):
         assert req.unredirected_hdrs.get("Authorization") == "Bearer tok"
         assert "Authorization" not in req.headers
     urls = [r.full_url for r, _ in fake.calls]
-    assert any("/users/sky9262/events/public?per_page=100" in u for u in urls)
+    assert not any("/events" in u for u in urls)  # no public-events fetch any more
     assert any("/user/repos?visibility=private&affiliation=owner&per_page=100" in u for u in urls)
     commit_urls = [u for u in urls if "/commits" in u]
     assert commit_urls and all("author=sky9262" in u and "per_page=100" in u for u in commit_urls)
@@ -266,7 +206,7 @@ def test_token_not_forwarded_on_redirect(monkeypatch):
     assert new.get_header("User-agent") == "profile-readme-generator"
 
 
-@pytest.mark.parametrize("path", ["/events/public", "/commits"])
+@pytest.mark.parametrize("path", ["/commits"])
 def test_fetch_404_elsewhere_raises(monkeypatch, path):
     def nf(req):
         raise _http_error(req.full_url, 404)

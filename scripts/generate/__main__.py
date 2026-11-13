@@ -5,8 +5,8 @@ Run by the profile Action every 3 hours; its output is force-pushed to the
 
 Order of defences (spec §7.3):
   1. no activity card renders a repo name (owner edit 3): the this-week card and
-     the plaques read only the anonymous contribution calendar, so Data.events and
-     Data.recent_repos never reach a card;
+     the plaques read only the anonymous contribution calendar, and Data carries no
+     activity feed (public events are not fetched at all);
   2. every rendered SVG then goes through privacy.check;
   3. output is written to a temp dir next to DIR and swapped in only when all of
      the above succeeded. On any failure DIR is left untouched and we exit 1.

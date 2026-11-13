@@ -273,15 +273,23 @@ def test_privacy_term_never_printed_jp(tmp_path, env, capsys):
     assert "今***" in cap.err
 
 
-def test_main_renders_no_repo_names_from_events_or_recent_repos(tmp_path, env):
+def test_main_renders_no_repo_names(tmp_path, env, monkeypatch):
     """Owner edit 3: the activity cards carry no repo names at all (the phishEye
-    plaque is a curated project card, not activity)."""
+    plaque is a curated project card, not activity). Names are injected straight
+    into Data, as public repos the generator knows about."""
+    from dataclasses import replace
+
+    data = load_fixture(FIX)
+    injected = {"sky9262/zq-injected-alpha": (3, 1), "sky9262/zq-injected-beta": (0, 0)}
+    data = replace(data, live={**data.live, **injected})
+    monkeypatch.setattr(gen, "load_fixture", lambda _dir: data)
     code, out = _run(tmp_path)
     assert code == 0
-    data = load_fixture(FIX)
-    names = {e.repo.split("/")[-1] for e in data.events} | {n.split("/")[-1] for n, _ in data.recent_repos}
-    assert names
-    for p in out.rglob("*.svg"):
+    names = {n.split("/")[-1] for n in data.live}
+    assert {"zq-injected-alpha", "zq-injected-beta"} <= names
+    svgs = list(out.rglob("*.svg"))
+    assert len(svgs) == 22
+    for p in svgs:
         if p.name == "plaque-phisheye.svg":
             continue
         svg = p.read_text(encoding="utf-8").lower()
@@ -289,7 +297,7 @@ def test_main_renders_no_repo_names_from_events_or_recent_repos(tmp_path, env):
             assert name.lower() not in svg, (p.name, name)
 
 
-def test_main_succeeds_with_deny_term_only_in_dropped_events(tmp_path, env):
+def test_main_succeeds_with_deny_term_only_in_repo_data(tmp_path, env):
     env.setenv("PROFILE_DENYLIST", "voice")
     code, out = _run(tmp_path)
     assert code == 0
@@ -584,3 +592,4 @@ def test_entry_never_prints_a_traceback(monkeypatch, capsys):
     assert ei.value.args == (1,)
     err = capsys.readouterr().err
     assert err.strip() == "error: ValueError"
+

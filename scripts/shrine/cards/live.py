@@ -22,8 +22,8 @@
 
 Privacy: the cards render only what they are given and show no repo names from
 activity at all (owner edit 3): the week card and the plaques read the anonymous
-contribution calendar; nothing here reads Data.events, Data.recent_repos or
-Data.private_repo_names.
+contribution calendar; nothing here reads Data.private_repo_names, and only the
+phishEye plaque (not this module) reads a repo name from Data.live.
 
 Shown as <img>: CSS keyframes only, no hover, no JS. Every glyph comes from the
 prebuilt runtime fonts (labels.py + printable ASCII). Stdlib only.

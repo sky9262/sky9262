@@ -151,9 +151,8 @@ def test_week_today_zero_and_missing_days(data, rfonts):
 
 def test_week_has_no_repo_names(data, rfonts):
     svg = live.render_week(data, NOW, "en", "desktop", rfonts) + live.render_week(data, NOW, "jp", "phone", rfonts)
-    for e in data.events:
-        assert e.repo.split("/")[-1] not in svg
-    for name, _ in data.recent_repos:
+    assert data.live
+    for name in data.live:
         assert name.split("/")[-1] not in svg
 
 
@@ -315,7 +314,7 @@ def test_torii_kitsune_animated(data, rfonts):
 
 
 def test_thousands_separators(data, rfonts):
-    big = replace(data, total_year=12345, stars=1234, followers=1000)
+    big = replace(data, total_year=12345, stars=1234)
     assert "12,345" in visible_strings(live.render_stat("contrib", big, "en", rfonts))
     assert "1,234" in visible_strings(live.render_stat("stars", big, "jp", rfonts))
     assert "12,345" in visible_strings(live.render_torii_path(big, "jp", "phone", rfonts))

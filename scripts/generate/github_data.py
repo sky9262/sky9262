@@ -13,10 +13,9 @@ import logging
 import urllib.error
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Literal
 
 log = logging.getLogger(__name__)
 
@@ -30,20 +29,10 @@ WINDOW = timedelta(days=365)
 JST = timezone(timedelta(hours=9))
 DEFAULT_COLOR = "#8B8B8B"  # GitHub returns null colour for some languages
 
-Kind = Literal["push", "create", "release", "star", "fork"]
-_KINDS: dict[str, Kind] = {
-    "PushEvent": "push",
-    "CreateEvent": "create",
-    "ReleaseEvent": "release",
-    "WatchEvent": "star",
-    "ForkEvent": "fork",
-}
-
 QUERY = """
 query($login: String!, $from: DateTime!, $to: DateTime!, $after: String) {
   user(login: $login) {
     login
-    followers { totalCount }
     contributionsCollection(from: $from, to: $to) {
       contributionCalendar {
         totalContributions
@@ -80,28 +69,16 @@ class FetchError(RuntimeError):
 
 
 @dataclass
-class Event:
-    kind: Kind
-    repo: str  # owner/name
-    at: datetime  # UTC
-
-
-@dataclass
 class Data:
     login: str
     days: list[tuple[date, int]]
     total_year: int
     public_repos: int
     stars: int
-    followers: int
     languages: list[tuple[str, int, str]]
-    events: list[Event]
     commit_times: list[datetime]
     live: dict[str, tuple[int, int]]
     private_repo_names: list[str]
-    # own public non-fork repos as (full_name, pushed_at UTC), newest first. Since
-    # owner edit 3 no card renders these; kept as data, never shown
-    recent_repos: list[tuple[str, datetime]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------- parsing
@@ -129,7 +106,6 @@ def _owned_repos(nodes: list[dict], login: str) -> list[dict]:
 def _parse(
     user: dict,
     repo_nodes: list[dict],
-    events: list[dict],
     commits: list[dict],
     private: list[dict],
     login: str,
@@ -156,40 +132,19 @@ def _parse(
         ((n, b, c) for n, (b, c) in langs.items()), key=lambda x: (-x[1], x[0])
     )
 
-    # The profile repo is left out: the generator force-pushes the output branch
-    # there every run, so its pushedAt says nothing about the owner's work.
-    recent = sorted(
-        (
-            (r["nameWithOwner"], _ts(r["pushedAt"]))
-            for r in repos
-            if r.get("pushedAt") and r["nameWithOwner"].lower() != f"{login}/{login}".lower()
-        ),
-        key=lambda x: (x[1], x[0]),
-        reverse=True,
-    )
-
-    evs = [
-        Event(kind=_KINDS[e["type"]], repo=e["repo"]["name"], at=_ts(e["created_at"]))
-        for e in events
-        if e.get("type") in _KINDS
-    ]
-
     return Data(
         login=user["login"],
         days=days,
         total_year=sum(c for _, c in days),
         public_repos=len(repos),
         stars=sum(int(r["stargazerCount"]) for r in repos),
-        followers=int(user["followers"]["totalCount"]),
         languages=languages,
-        events=evs,
         commit_times=sorted(_ts(c["commit"]["author"]["date"]) for c in commits),
         live={
             r["nameWithOwner"]: (int(r["stargazerCount"]), int(r["forkCount"]))
             for r in repos
         },
         private_repo_names=[p["name"] for p in private],
-        recent_repos=recent,
     )
 
 
@@ -204,7 +159,6 @@ def load_fixture(dir: Path) -> Data:
     return _parse(
         user,
         user["repositories"]["nodes"],
-        json.loads((dir / "events.json").read_text()),
         commits,
         json.loads((dir / "private_repos.json").read_text()),
         login=user["login"],
@@ -303,8 +257,6 @@ def fetch(token: str, login: str = "sky9262", now: datetime | None = None) -> Da
         after = info["endCursor"]
     assert user is not None
 
-    events = _request(token, f"{API}/users/{login}/events/public?per_page={PER_PAGE}")
-
     recent = [
         r
         for r in _owned_repos(nodes, login)
@@ -327,7 +279,7 @@ def fetch(token: str, login: str = "sky9262", now: datetime | None = None) -> Da
                 break
 
     private = _private_repo_names(token)
-    return _parse(user, nodes, events, commits, private, login, today=now.date())
+    return _parse(user, nodes, commits, private, login, today=now.date())
 
 
 # ---------------------------------------------------------------- helpers
@@ -351,17 +303,3 @@ def hour_buckets(times: list[datetime]) -> dict[str, int]:
             out["yoru"] += 1
     return out
 
-
-def filter_events(events: list[Event], login: str, deny: list[str]) -> list[Event]:
-    """Keep star/fork on any repo and other kinds only on `login`'s own repos; then
-    drop any event whose repo contains a deny term (case-insensitive, blanks ignored)."""
-    terms = [t.strip().lower() for t in deny if t and t.strip()]
-    me = login.lower()
-    out = []
-    for e in events:
-        if e.kind not in ("star", "fork") and e.repo.split("/", 1)[0].lower() != me:
-            continue
-        if any(t in e.repo.lower() for t in terms):
-            continue
-        out.append(e)
-    return out
