@@ -1,0 +1,7 @@
+# Font sources for scripts.build (dev only): see scripts/shrine/fonts/README.md (SHRINE_SERIF_DIR, SHRINE_MONO_DIR)
+fonttools==4.66.1
+brotli
+pytest
+playwright
+pillow
+numpy

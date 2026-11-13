@@ -1,0 +1,26 @@
+"""Night Shrine palette (spec section 4)."""
+
+PALETTE: dict[str, str] = {
+    "night-0": "#070a1c",
+    "night-1": "#151133",
+    "night-2": "#2a1530",
+    "vermilion": "#e8452c",
+    "sumi-a": "#1a1a1a",
+    "sumi-b": "#111111",
+    "lantern-gold": "#ffcf7a",
+    "lantern-glow-a": "#ffb347",
+    "lantern-glow-b": "#ff5a1f",
+    "circuit-cyan": "#2de2e6",
+    "sakura-a": "#ffe3ec",
+    "sakura-b": "#ff8fb1",
+    "moon-a": "#fff4dc",
+    "moon-b": "#ffe9c7",
+    "text-soft-a": "#c9c3e6",
+    "text-soft-b": "#8f88b8",
+    "wood-a": "#d8ad72",
+    "wood-b": "#a7743a",
+    "wood-grain": "#8a5a28",
+    "ink-a": "#2b1708",
+    "ink-b": "#3a2410",
+    "ink-red": "#a3291a",
+}

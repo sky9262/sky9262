@@ -1,151 +1,88 @@
-<a href="https://github.com/sky9262/sky9262/blob/main/README-JP.md"><img align="right" src="https://img.shields.io/badge/%E6%97%A5%E6%9C%AC%E8%AA%9E-ff6684?style=for-the-badge&logo=Toggl&logoColor=white"></a><br />
+<p align="right"><a href="https://github.com/sky9262/sky9262/blob/profile-v2/README-EN.md"><img src="assets/jp/toggle.svg" width="140" alt="English版を開く"></a></p>
 
-### Hi there <𝚌𝚘𝚍𝚎𝚛𝚜/>! <img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">,I am
+<picture><source media="(max-width: 600px)" srcset="assets/jp/hero-phone.svg"><img src="assets/jp/hero-desktop.svg" width="100%" alt="夜の神社 アカシュ・クマァ（Akash Kumar）のプロフィール"></picture>
 
-<a align="center"> <img src="https://github.com/sky9262/sky9262/blob/main/ezgif.com-gif-maker%20(3).gif" /></a>
-
-<h3 align="center">I am a Trilingual AI Engineer working in Japan. I am always ready to have new experiences, meet new people and learn new things. I am the type of individual who looks for adventure and challenges.</h3>
-
-<p><img align='left' src="https://octodex.github.com/images/hula_loop_octodex03.gif" width="130"></p>
-
-[![Typing SVG](https://readme-typing-svg.herokuapp.com/?size=40&lines=I'm+a+AI+%26+Engineer;Interested+in+Cyber+Security+too;Always+learning+new+things&width=700&height=150&color=ffdc40&center=true)](https://github.com/sky9262)
-
-- 🌱 I’m currently learning [![ML](https://img.shields.io/badge/Machine%20Learning-29beb0?&style=for-the-badge&logo=circuitverse&logoColor=ffffff)]([https://www.docker.com/](https://en.wikipedia.org/wiki/Machine_learning)) [![AWS Cloud](https://img.shields.io/badge/AWS%20Cloud-105290?style=for-the-badge&logo=amazonaws&logoColor=white)](https://en.wikipedia.org/wiki/Cryptography)
-
-<!-- 📝 I regulary write articles on [![Blog](https://img.shields.io/badge/-reishin.me-FF4088?style=for-the-badge&logo=Hugo&logoColor=ffffff)](https://reishin.me)-->
-
-- 📫 How to reach me [![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:akash2002.pat@gmail.com) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/sky9262/) [![Twitter](https://img.shields.io/badge/twitter-1DA1F2.svg?style=for-the-badge&logo=twitter&logoColor=ffffff)](https://twitter.com/sky9262) [![Instagram](https://img.shields.io/badge/Instagram-FFFFFF?style=for-the-badge&logo=instagram&logoColor=bc2a8d)](http://instagram.com/sky926296)
-
-<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60"/> <em>I love connecting with different people so if you want to say <b>hi</b>, I'll be happy to meet you more! <b>😊</b></em>
-
-<!---<a href='https://archiveprogram.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/acbadge.gif' width='40' height='40'></a>
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1620861295093/-z0eJTmdv.gif" />
---->
-<!---<a href='https://stars.github.com/'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/starbadge.gif' width='35' height='35'></a> --->
-<img align='right' src="https://media.giphy.com/media/M9gbBd9nbDrOTu1Mqx/giphy.gif" width="230">
-
-<a href='https://docs.github.com/en/developers'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/devbadge.gif' width='40' height='40'></a> <a href='https://github.com/pricing'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/pro.gif' width='40' height='40'></a> <a href='https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors'><img src='https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/sponsorbadge.gif' width='40' height='40'></a>
-
----
-
-## Operating System & Tools
-
-[![WinOS](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/en-in/windows/)
-[![Kali Linux](https://img.shields.io/badge/Kali_Linux-557C94?style=for-the-badge&logo=kali-linux&logoColor=white)](https://www.kali.org/)
-
-[![Pycharm](https://img.shields.io/badge/IDE-PyCharm-yellow?style=flat-square&logo=JetBrains)](https://www.jetbrains.com/pycharm/)
-[![VS Code](https://img.shields.io/badge/IDE-VSCode-%23007ACC?style=flat-square&logo=Visual-studio-code)](https://code.visualstudio.com/)
-
----
-
-<p align="left"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=sky9262&row=2&column=3&theme=monokai&column=8&no-frame=true&no-bg=true" alt="sky9262" /></a> </p>
-
-[![TryHackMe - sky9262](https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0)](https://tryhackme.com/p/sky9262)
-
-[![Solved.ac - sky9262](http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262)](https://solved.ac/sky9262)
-<br />
-[![Solved.ac - sky9262](http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262)](https://solved.ac/sky9262)
-
-<p align="left"> <a href="https://twitter.com/akash_sky_sri" target="blank"><img src="https://img.shields.io/twitter/follow/akash_sky_sri?logo=twitter&style=for-the-badge" alt="akash_sky_sri" /></a> </p>
-
----
-
-<h2 align="center"> Top Projects </h2>
-<br>
-<div width="100%" align="center">
-  <a align="center" href="https://github.com/sky9262/AWS-Developer-Associate/tree/main/Projects" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=AWS-Developer-Associate&theme=cobalt&border_color=61dafb&border_radius=10">
-  </a> 
-
-  <a align="center" href="https://github.com/sky9262/phishEye" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=phishEye&theme=cobalt&border_color=61dafb&border_radius=10">
-  </a> 
-  
-  <a align="center" href="https://github.com/sky9262/gce-korea" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=gce-korea&theme=cobalt&border_color=61dafb&border_radius=10">
-  </a>  
-  
-  <a align="center" href="https://github.com/sky9262/qrcan" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=qrcan&theme=cobalt&border_color=61dafb&border_radius=10">
-  </a>
- 
-  <a align="center" href="https://github.com/sky9262/writeups" title="Website"><img align="left" height="115" src="https://github-readme-stats.vercel.app/api/pin/?username=sky9262&repo=writeups&theme=cobalt&border_color=61dafb&border_radius=10">
-  </a>
- 
-  
-</div>
-
-<br /> <br /> <br /> <br /> <br />
-
-[![github activity graph](https://github-readme-activity-graph.cyclic.app/graph?username=sky9262&bg_color=000000&color=849e4c&line=0aff54&point=1e6c0e&area=true&hide_border=true)](https://github.com/ashutosh00710/github-readme-activity-graph)
-
-<br /> <br /> <br /> <br /> <br />
-
-
-
-
-
-
-
----
-
-<h3 align="center">Languages and Tools:</h3>
-<p align="center">  
-        <a href="https://www.python.org" target="_blank"> 
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original-wordmark.svg" alt="python" width="65" height="65"/> 
-        </a>
-        <a href="https://aws.amazon.com/" target="_blank"> 
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg" alt="aws" width="65" height="65"/> 
-        </a>
-        <a href="https://www.docker.com/" target="_blank"> 
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original-wordmark.svg" alt="docker" width="65" height="65"/> 
-        </a>
-        <a href="https://git-scm.com/" target="_blank"> 
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original-wordmark.svg" alt="git" width="65" height="65"/> 
-        </a>
-        <a href="https://www.jenkins.io/" target="_blank"> 
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg" alt="jenkins" width="65" height="65"/> 
-        </a>
-        <a href="https://en.wikipedia.org/wiki/Bash_(Unix_shell)" target="_blank">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bash/bash-plain.svg" alt="bash" width="65" height="65" />
-        </a> 
-        <a href="https://www.linux.org/" target="_blank">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" alt="linux" width="65" height="65" />
-        </a> 
-        <a href="https://en.wikipedia.org/wiki/MS-DOS" target="_blank">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/msdos/msdos-original.svg" alt="MS-DOS" width="65" height="65" />
-        </a> 
-        <a href="https://www.raspberrypi.org/" target="_blank">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/raspberrypi/raspberrypi-original.svg" alt="raspberrypi" width="65" height="65" />
-        </a> 
-        <a href="https://www.w3.org/html/" target="_blank"> 
-            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/html5/html5-original-wordmark.svg" alt="html5" width="65" height="65"/> 
-        </a> 
-        <a href="https://www.w3schools.com/css/" target="_blank"> 
-            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/css3/css3-original-wordmark.svg" alt="css3" width="65" height="65"/> 
-        </a> 
-        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank"> 
-            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" alt="javascript" width="65" height="65"/> 
-        </a>
-        <a href="https://reactjs.org/" target="_blank"> 
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original-wordmark.svg" alt="react.js" width="65" height="65"/> 
-        </a>
-        <a href="https://www.mongodb.com/" target="_blank">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original-wordmark.svg" alt="mongodb" width="65" height="65" />
-        </a> 
-        <a href="https://nodejs.org/en/" target="_blank">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original-wordmark.svg" alt="nodejs" width="65" height="65" />
-        </a> 
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="提灯を持って歩く狐（区切り）">
 </p>
 
-<p><img align="center" src="https://github-readme-stats.vercel.app/api/top-langs?username=sky9262&bg_color=30,e96443,904e95&title_color=fff&text_color=fff&show_icons=true&locale=en&layout=compact" alt="sky9262" /></p>
+<h2 align="center">絵馬 · プロジェクト</h2>
 
-<p>&nbsp;<img align="center" src="https://github-readme-stats.vercel.app/api?username=sky9262&bg_color=30,e96443,904e95&title_color=fff&text_color=fff&show_icons=true&locale=en" alt="sky9262" /></p>
+<p align="center">
+<a href="https://sky9262.github.io"><img src="assets/jp/plaque-scout.svg" width="410" alt="絵馬: スカウトAIエージェント"></a>
+<a href="https://sky9262.github.io"><img src="assets/jp/plaque-marketing.svg" width="410" alt="絵馬: マーケティングAIエージェント"></a>
+</p>
 
-## [![GitHub Streak](https://github-readme-streak-stats.herokuapp.com?user=sky9262&theme=tokyonight&hide_border=true)](https://github.com/sky9262)
+<p align="center">
+<a href="https://sky9262.github.io"><img src="assets/jp/plaque-facilitator.svg" width="410" alt="絵馬: AI会議ファシリテーター"></a>
+<a href="https://sky9262.github.io"><img src="assets/jp/plaque-drone.svg" width="410" alt="絵馬: ドローン編隊自動生成エンジン"></a>
+</p>
 
-<h3 align="center">😂 Joke 😂</h3>
-<p align="center"><img src="https://readme-jokes.vercel.app/api"/> </p>
+<p align="center">
+<a href="https://github.com/sky9262/phishEye"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/plaque-phisheye.svg" width="410" alt="絵馬: フィッシング対策訓練ツール"></a>
+<a href="https://huggingface.co/sky9262/whisper-base-japanese-anime"><img src="assets/jp/plaque-whisper.svg" width="410" alt="絵馬: アニメ音声文字起こしモデル"></a>
+</p>
 
----
+<picture><source media="(max-width: 600px)" srcset="assets/jp/cando-phone.svg"><img src="assets/jp/cando-desktop.svg" width="100%" alt="我が道: 私にできること"></picture>
 
-![Made with love in India](https://madewithlove.now.sh/in?heart=true&template=for-the-badge)
+<picture><source media="(max-width: 600px)" srcset="assets/jp/stack-phone.svg"><img src="assets/jp/stack-desktop.svg" width="100%" alt="道具: 技術スタック"></picture>
 
-<!--![VisitorCount](https://profile-counter.glitch.me/sky9262/count.svg)-->
-<p align="left"> <img src="https://komarev.com/ghpvc/?username=sky9262&label=Profile%20views&color=0e75b6&style=flat" alt="sky9262" /> </p>
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="提灯を持って歩く狐（区切り）">
+</p>
+
+<h2 align="center">千本鳥居 · 活動</h2>
+
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/torii-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/torii-desktop.svg" width="100%" alt="千本鳥居: 活動の入り口"></picture>
+
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-desktop.svg" width="100%" alt="今週の参拝: 直近7日間の毎日の貢献数"></picture>
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-contrib.svg" width="410" alt="過去1年の貢献数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-month.svg" width="410" alt="直近30日の貢献数">
+</p>
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-peak.svg" width="410" alt="最も貢献の多かった一日">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-stars.svg" width="410" alt="獲得スター数">
+</p>
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/enso.svg" width="410" alt="円相: 使用言語の割合">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/hours.svg" width="410" alt="時間帯別のコミット数">
+</p>
+
+<h3 align="center">御守り · 実績と認定</h3>
+
+<p align="center">
+<img src="assets/jp/achievement-squid_ctf.svg" width="410" alt="Squid CTF 2022: 75チーム中 1位">
+<img src="assets/jp/achievement-knight_ctf.svg" width="410" alt="Knight CTF 2022: 752チーム中 18位">
+</p>
+
+<p align="center">
+<img src="assets/jp/achievement-aws_dev.svg" width="410" alt="AWS認定 デベロッパー – アソシエイト: 2023年 取得">
+<img src="assets/jp/achievement-agentforce.svg" width="410" alt="Salesforce認定 Agentforce スペシャリスト: 2025年 取得">
+</p>
+
+<p align="center">
+<img src="assets/jp/achievement-tryhackme.svg" width="410" alt="TryHackMe: 上位5%">
+<img src="assets/jp/achievement-jlpt.svg" width="410" alt="日本語能力試験 N3: 2024年 合格">
+</p>
+
+<picture><source media="(max-width: 600px)" srcset="assets/jp/connect-phone.svg"><img src="assets/jp/connect-desktop.svg" width="100%" alt="ご縁: 連絡先"></picture>
+
+<p align="center">
+<a href="mailto:akash2002.pat@gmail.com"><img src="assets/common/btn-gmail.svg" alt="Gmailで連絡"></a>
+<a href="https://www.linkedin.com/in/sky9262/"><img src="assets/common/btn-linkedin.svg" alt="LinkedInを開く"></a>
+<a href="https://x.com/sky9262"><img src="assets/common/btn-x.svg" alt="Xを開く"></a>
+<a href="https://instagram.com/sky926296"><img src="assets/common/btn-instagram.svg" alt="Instagramを開く"></a>
+<a href="https://sky9262.github.io"><img src="assets/common/btn-portfolio.svg" alt="ポートフォリオを開く"></a>
+<a href="https://huggingface.co/sky9262"><img src="assets/common/btn-huggingface.svg" alt="Hugging Faceを開く"></a>
+<a href="https://tryhackme.com/p/sky9262"><img src="assets/common/btn-tryhackme.svg" alt="TryHackMeを開く"></a>
+</p>
+
+<p align="center">
+<img src="assets/common/walker-divider.svg" width="100%" alt="提灯を持って歩く狐（区切り）">
+</p>
+
+<p align="center"><sub>ご参拝いただき、ありがとうございました。</sub></p>

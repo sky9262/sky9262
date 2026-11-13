@@ -1,0 +1,1 @@
+"""Night Shrine SVG generator."""
