@@ -8,8 +8,11 @@ for p in (ROOT, ROOT / "tests"):
 
 import pytest
 
-SERIF_DIR = Path("/Users/kumar.akash/Downloads/My Projects/portfolio-v2/public/fonts")
-MONO_DIR = Path.home() / ".cache/shrine-fonts"
+from scripts.build import sources  # noqa: E402
+
+# full TTFs for the dev-only subset tests: SHRINE_SERIF_DIR / SHRINE_MONO_DIR
+SERIF_DIR = sources.serif_dir()
+MONO_DIR = sources.mono_dir()
 
 
 @pytest.fixture(scope="session")

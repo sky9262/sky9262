@@ -1,13 +1,11 @@
 import base64
 import re
-from pathlib import Path
 
 import pytest
 
+from conftest import MONO_DIR, SERIF_DIR
 from scripts.shrine.svg import document, embed_fonts
 
-SERIF_DIR = Path("/Users/kumar.akash/Downloads/My Projects/portfolio-v2/public/fonts")
-MONO_DIR = Path.home() / ".cache/shrine-fonts"
 TEXT = "アカシュ・クマァ Akash"
 
 
@@ -99,3 +97,31 @@ def test_runtime_fonts_reads_files():
     css = RuntimeFonts().css("x")
     assert '@font-face{font-family:"Shrine Serif";font-weight:400' in css
     assert css.count("base64,") == 4
+
+
+def test_font_source_dirs_from_env(monkeypatch, tmp_path):
+    from scripts.build import sources
+
+    monkeypatch.delenv("SHRINE_SERIF_DIR", raising=False)
+    monkeypatch.delenv("SHRINE_MONO_DIR", raising=False)
+    assert sources.serif_dir() == sources.CACHE / "serif"
+    assert sources.mono_dir() == sources.CACHE
+    monkeypatch.setenv("SHRINE_SERIF_DIR", str(tmp_path / "s"))
+    monkeypatch.setenv("SHRINE_MONO_DIR", str(tmp_path / "m"))
+    assert sources.serif_dir() == tmp_path / "s"
+    assert len(sources.missing()) == 4
+
+
+def test_build_fails_clearly_without_font_sources(monkeypatch, tmp_path, capsys):
+    pytest.importorskip("fontTools")
+    from scripts.build import __main__ as b
+
+    monkeypatch.setenv("SHRINE_SERIF_DIR", str(tmp_path / "nope"))
+    monkeypatch.setenv("SHRINE_MONO_DIR", str(tmp_path / "nope"))
+    monkeypatch.setattr("sys.argv", ["scripts.build", "--output-branch", "output-test"])
+    with pytest.raises(SystemExit) as ei:
+        b.main()
+    assert ei.value.code == 2
+    err = capsys.readouterr().err
+    assert "font sources missing" in err and "SHRINE_SERIF_DIR" in err
+    assert "NotoSerifJP-Regular.ttf" in err

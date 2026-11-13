@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import argparse
-import os
+import sys
 from pathlib import Path
 
+from scripts.build import sources
 from scripts.build.readme import FILE, render_readme
 from scripts.build.subset import SubsetFonts, build_runtime_fonts
 from scripts.shrine import content, labels
@@ -20,9 +21,6 @@ from scripts.shrine.fonts import FONT_DIR
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 ART = Path(__file__).resolve().parent / "art"
-SERIF_DIR = Path(os.environ.get(
-    "SHRINE_SERIF_DIR", "/Users/kumar.akash/Downloads/My Projects/portfolio-v2/public/fonts"))
-MONO_DIR = Path(os.environ.get("SHRINE_MONO_DIR", Path.home() / ".cache/shrine-fonts"))
 LANGS = ("jp", "en")
 LAYOUTS = ("desktop", "phone")
 LIVE_PLAQUE = "phisheye"
@@ -46,9 +44,22 @@ def _write(path: Path, data: str) -> None:
     path.write_text(data, encoding="utf-8")
 
 
+class MissingFonts(RuntimeError):
+    """The full TTFs the build subsets from are not where SHRINE_*_DIR point."""
+
+
 def build(output_branch: str) -> None:
-    build_runtime_fonts(FONT_DIR, runtime_text(), serif_dir=SERIF_DIR, mono_dir=MONO_DIR)
-    fonts = SubsetFonts(SERIF_DIR, MONO_DIR)
+    gone = sources.missing()
+    if gone:
+        raise MissingFonts(
+            "font sources missing:\n"
+            + "".join(f"  {p}\n" for p in gone)
+            + "set SHRINE_SERIF_DIR (Noto Serif JP) and SHRINE_MONO_DIR (JetBrains Mono); "
+            "see scripts/shrine/fonts/README.md"
+        )
+    serif, mono = sources.serif_dir(), sources.mono_dir()
+    build_runtime_fonts(FONT_DIR, runtime_text(), serif_dir=serif, mono_dir=mono)
+    fonts = SubsetFonts(serif, mono)
     assets = ROOT / "assets"
     for lang in LANGS:
         d = assets / lang
@@ -75,7 +86,11 @@ def build(output_branch: str) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(prog="python -m scripts.build")
     ap.add_argument("--output-branch", choices=("output", "output-test"), default="output")
-    build(ap.parse_args().output_branch)
+    try:
+        build(ap.parse_args().output_branch)
+    except MissingFonts as e:
+        print(f"error: {e}", file=sys.stderr)
+        sys.exit(2)
 
 
 if __name__ == "__main__":
