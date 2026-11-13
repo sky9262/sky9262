@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from scripts.shrine.content import (
-    ACHIEVEMENTS, LINKS, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
+    ACHIEVEMENTS, CTFTIME, HACKERRANK, HACKERRANK_URL, LINKS, PICOCTF, THM_BADGES, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
 )
 
 RAW = "https://raw.githubusercontent.com/sky9262/sky9262"
@@ -50,6 +50,95 @@ ACH_ALT_EN = {
     "tryhackme": "TryHackMe, top 5 percent",
     "jlpt": "JLPT N3, passed 2024",
 }
+
+
+def _hackerrank_alt(lang: str) -> str:
+    if lang == "jp":
+        return "HackerRankのスキルバッジ: " + "、".join(f"{b} 星{st}（{n}問）" for b, st, n, _ in HACKERRANK)
+    return "HackerRank skill badges: " + ", ".join(f"{b} {st} stars ({n} solved)" for b, st, n, _ in HACKERRANK)
+
+
+# 410-wide shrine tablets after the six achievements, paired two per centred row
+# (url, asset name, alt per language). A picoCTF tablet will join HackerRank here.
+EXTRA_TABLETS: list[tuple[str, str, dict[str, str]]] = [
+    (HACKERRANK_URL, "hackerrank", {lang: _hackerrank_alt(lang) for lang in ("jp", "en")}),
+    (PICOCTF["url"], "picoctf", {
+        "jp": f"picoCTF（{PICOCTF['user']}）: CTF演習スコア {PICOCTF['score']}点",
+        "en": f"picoCTF ({PICOCTF['user']}): CTF score {PICOCTF['score']} points",
+    }),
+]
+
+
+def _ctftime_alt(lang: str) -> str:
+    years = CTFTIME["years"]
+    world = min(years, key=lambda r: r[1])
+    india = min(years, key=lambda r: r[3])
+    if lang == "jp":
+        return (f"CTFtimeチーム {CTFTIME['team']} のメンバー: 世界{world[1]}位（{world[0]}年）、"
+                f"インド{india[3]}位（{india[0]}年）")
+    return (f"CTFtime team {CTFTIME['team']} (member): World #{world[1]} ({world[0]}), "
+            f"India #{india[3]} ({india[0]})")
+
+
+# the CTFtime team tablet: centred alone in its own row after the pair
+CTFTIME_TABLET = (CTFTIME["url"], "ctftime", {lang: _ctftime_alt(lang) for lang in ("jp", "en")})
+
+
+THM_SHELF_ALT = {
+    "jp": "TryHackMeで獲得したバッジ（上位5%・最長連続253日）: " + "、".join(n for _, n in THM_BADGES),
+    "en": "TryHackMe badges (top 5 percent, longest streak 253 days): " + ", ".join(n for _, n in THM_BADGES),
+}
+
+
+def tablet_rows(tablets: list[tuple[str, str, dict[str, str]]], lang: str) -> list[str]:
+    return _pairs([
+        f'<a href="{url}">{_img(f"assets/{lang}/{name}.svg", alt[lang])}</a>'
+        for url, name, alt in tablets
+    ])
+
+
+BEAR = "https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90"
+GREETING = {
+    "jp": "<em>いろいろな方とつながるのが大好きです。気軽に<b>こんにちは</b>と声をかけてください。"
+          "お会いできるのを楽しみにしています！<b>😊</b></em>",
+    "en": "<em>I love connecting with different people so if you want to say <b>hi</b>, "
+          "I'll be happy to meet you more! <b>😊</b></em>",
+}
+_ANIM = "https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets"
+GH_BADGES = [
+    ("https://docs.github.com/en/developers", f"{_ANIM}/devbadge.gif",
+     {"jp": "GitHub開発者ドキュメント", "en": "GitHub developer program"}),
+    ("https://github.com/pricing", f"{_ANIM}/pro.gif",
+     {"jp": "GitHub Proの料金プラン", "en": "GitHub Pro"}),
+    ("https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors",
+     f"{_ANIM}/sponsorbadge.gif",
+     {"jp": "GitHubスポンサーの案内", "en": "GitHub Sponsors"}),
+]
+THM_URL = "https://tryhackme.com/p/sky9262"
+THM_IMG = "https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0"
+SOLVED_URL = "https://solved.ac/sky9262"
+SOLVED_CARD = "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262"
+OWNER_ALT = {
+    "thm": {"jp": "TryHackMe（sky9262）のバッジ", "en": "TryHackMe - sky9262"},
+    "solved": {"jp": "Solved.ac（sky9262）の実績", "en": "Solved.ac - sky9262"},
+    "love": {"jp": "インドで愛を込めて作りました", "en": "Made with love in India"},
+    "views": {"jp": "プロフィールの閲覧数", "en": "Profile views"},
+    "bear": {"jp": "手を振るクマ", "en": "Waving bear"},
+}
+# Credly badges (official 110x110 images, linked). Owner: no issue dates anywhere,
+# so the alt text names the badge and issuer only.
+CREDLY: list[tuple[str, str, dict[str, str]]] = [
+    ("https://www.credly.com/badges/3f668e38-27f7-4ae8-9e03-c0a53ad18f14",
+     "https://images.credly.com/size/110x110/images/054913b2-e271-49a2-a1a4-9bf1c1f9a404/CyberEssentials.png",
+     {"jp": "Credlyバッジ: Cybersecurity Essentials（Cisco）",
+      "en": "Credly badge: Cybersecurity Essentials (Cisco)"}),
+    ("https://www.credly.com/badges/ba32f9e8-a5a3-4d36-8261-be77a22b9337",
+     "https://images.credly.com/size/110x110/images/af8c6b4e-fc31-47c4-8dcb-eb7a2065dc5b/I2CS__1_.png",
+     {"jp": "Credlyバッジ: Introduction to Cybersecurity（Cisco）",
+      "en": "Credly badge: Introduction to Cybersecurity (Cisco)"}),
+]
+MADE_WITH_LOVE = "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge"
+VIEWS = "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat"
 
 
 def _live(lang: str, branch: str, name: str) -> str:
@@ -143,8 +232,23 @@ def render_readme(lang: Lang, output_branch: str) -> str:
         for aid, t, d in ACHIEVEMENTS
     ]
     blocks += _pairs(ach)
+    blocks += tablet_rows(EXTRA_TABLETS, lang)
+    blocks += tablet_rows([CTFTIME_TABLET], lang)
+    blocks.append(_centered(
+        f'<a href="{THM_URL}"><img src="{THM_IMG}" alt="{OWNER_ALT["thm"][lang]}"></a>'))
+    blocks.append(_centered(
+        f'<a href="{THM_URL}">{_picture("thm-shelf", THM_SHELF_ALT[lang], lang)}</a>'))
+    blocks.append(_centered(
+        f'<a href="{SOLVED_URL}"><img src="{SOLVED_CARD}" alt="{OWNER_ALT["solved"][lang]}"></a>'))
+    blocks.append(_centered("\n".join(
+        f'<a href="{url}">{_img(src, alt[lang], 110)}</a>' for url, src, alt in CREDLY)))
     # 7. connect
     blocks.append(_picture("connect", ALT["connect"][lang], lang))
+    blocks.append(_centered(
+        f'<img src="{BEAR}" width="60" alt="{OWNER_ALT["bear"][lang]}"> {GREETING[lang]}'))
+    blocks.append(_centered("\n".join(
+        f'<a href="{u}"><img src="{g}" width="40" height="40" alt="{a[lang]}"></a>'
+        for u, g, a in GH_BADGES)))
     buttons = [
         f'<a href="{url}"><img src="assets/common/btn-{lid}.svg" alt="{LINK_ALT[lang][lid]}"></a>'
         for lid, _label, url in LINKS
@@ -154,4 +258,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     blocks.append(_divider(lang))
     # 8. sign-off
     blocks.append(f'<p align="center"><sub>{CONNECT["signoff"](lang)}</sub></p>')
+    blocks.append(_centered(
+        f'<img src="{MADE_WITH_LOVE}" alt="{OWNER_ALT["love"][lang]}">\n'
+        f'<img src="{VIEWS}" alt="{OWNER_ALT["views"][lang]}">'))
     return "\n\n".join(blocks) + "\n"

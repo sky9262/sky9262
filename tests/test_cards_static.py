@@ -712,3 +712,227 @@ def test_misc_metrics_match_fonts():
         cmap, hm = f.getBestCmap(), f["hmtx"]
         for ch in set(text):
             assert text_width(ch, 1000, weight=weight) == pytest.approx(hm[cmap[ord(ch)]][0]), (ch, weight)
+
+
+# ---------------------------------------------------------------- HackerRank tablet (owner edit 5)
+
+from scripts.shrine.cards.achievement import render_hackerrank  # noqa: E402
+from scripts.shrine.content import HACKERRANK, HACKERRANK_TEXT  # noqa: E402
+
+
+def test_hackerrank_data():
+    assert [(b, s, n, t) for b, s, n, t in HACKERRANK] == [
+        ("C++", 5, 18, "gold"), ("Python", 5, 26, "gold"), ("Ruby", 4, 31, "silver"),
+    ]
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_hackerrank(fonts, lang):
+    svg = render_hackerrank(lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 360)  # >= 14 units at 410 -> 360
+    assert 'viewBox="0 0 410 200"' in svg
+    seen = visible_strings(svg)
+    assert HACKERRANK_TEXT["title"](lang) in seen
+    assert HACKERRANK_TEXT["sub"](lang) in seen
+    for badge, stars, solved, tier in HACKERRANK:
+        assert badge in seen, badge
+        assert HACKERRANK_TEXT["solved"](lang).format(n=solved) in seen
+        # each medal draws exactly its stars, as star glyph paths
+        m = re.search(rf'<g class="medal" data-badge="{re.escape(badge)}" data-stars="(\d)"(.*?)</g><!--/medal-->', svg, re.S)
+        assert m, badge
+        assert int(m.group(1)) == stars
+        assert m.group(2).count(GLYPH["star"]) == stars, badge
+        assert f'data-tier="{tier}"' in m.group(2)
+    from scripts.shrine.icons import BRAND
+    assert BRAND["Python"][0] in svg  # the reused Simple Icons logo
+    assert "@font-face" in svg
+    for e in EMOJI + ("💎", "🐍"):
+        assert e not in svg
+    assert re.search(r'class="sway"', svg)
+    other = "en" if lang == "jp" else "jp"
+    assert HACKERRANK_TEXT["sub"](other) not in seen
+
+
+# ---------------------------------------------------------------- picoCTF tablet (owner edit 6)
+
+from scripts.shrine.content import PICOCTF  # noqa: E402
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_picoctf(fonts, lang):
+    from scripts.shrine.cards.achievement import render_picoctf
+
+    svg = render_picoctf(lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 360)
+    assert 'viewBox="0 0 410 200"' in svg
+    seen = visible_strings(svg)
+    assert PICOCTF["title"](lang) in seen
+    assert PICOCTF["sub"](lang) in seen
+    assert PICOCTF["score"] == "11,600+" and PICOCTF["score"] in seen
+    assert PICOCTF["user"] == "sky9262" and f"pts · {PICOCTF['user']}" in seen
+    assert "pico" in seen  # the small mark under the flag
+    other = "en" if lang == "jp" else "jp"
+    if PICOCTF["sub"](other) != PICOCTF["sub"](lang):
+        assert PICOCTF["sub"](other) not in seen
+    assert re.search(r'class="sway"', svg) and "@font-face" in svg
+    for e in EMOJI + ("🚩",):
+        assert e not in svg
+
+
+# ---------------------------------------------------------------- CTFtime team tablet (owner edit 7)
+
+from scripts.shrine.content import CTFTIME  # noqa: E402
+
+
+def test_ctftime_data():
+    assert CTFTIME["team"] == "warlock_rootx" and CTFTIME["country"] == "IN"
+    assert CTFTIME["url"] == "https://ctftime.org/team/75661"
+    assert CTFTIME["years"] == [(2019, 110, 188.0, 5), (2020, 58, 309.7, 2), (2021, 39, 355.2, 3)]
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_ctftime(fonts, lang):
+    from scripts.shrine.cards.achievement import render_ctftime
+
+    svg = render_ctftime(lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 360)
+    assert 'viewBox="0 0 410 200"' in svg
+    seen = visible_strings(svg)
+    assert CTFTIME["role"](lang) in seen and "warlock_rootx" in seen
+    assert CTFTIME["world"](lang).format(n=39) in seen  # best global place, 2021
+    assert CTFTIME["india"](lang).format(n=2) in seen  # best India place, 2020
+    for year, place, _pts, india in CTFTIME["years"]:
+        assert str(year) in seen
+        assert f"#{place}" in seen and f"#{india}" in seen  # both rank sets
+    assert CTFTIME["state"]["world"](lang) in seen and CTFTIME["state"]["india"](lang) in seen
+    # the climb: one step per year; heights per state rise as the place improves
+    steps = re.findall(
+        r'class="step" data-year="(\d+)" data-world="(\d+)" data-india="(\d+)" data-hw="([\d.]+)" data-hi="([\d.]+)"', svg
+    )
+    assert [int(y) for y, *_ in steps] == [2019, 2020, 2021]
+    for ranks, hs in (([int(w) for _, w, _, _, _ in steps], [float(h) for *_, h, _ in steps]),
+                      ([int(n) for _, _, n, _, _ in steps], [float(h) for *_, h in steps])):
+        order = sorted(range(3), key=lambda k: ranks[k])  # best place first
+        assert [hs[k] for k in order] == sorted(hs, reverse=True), (ranks, hs)
+        assert min(hs) >= 14
+    # the world/India switch: CSS keyframes only, ~8 s, gates scale from the bottom
+    assert "@keyframes ctfA{" in svg and "@keyframes ctfB{" in svg
+    for k in range(3):
+        assert f"@keyframes gate{k}{{" in svg and f"@keyframes glow{k}{{" in svg
+    assert "animation:ctfA 8s" in svg and "transform-origin:50% 100%" in svg
+    assert "transform-box:fill-box" in svg
+    # a visible default (state A) if animations have not started
+    assert re.search(r'class="ctfB"[^>]*style="opacity:0', svg)
+    assert re.search(r'class="sway"', svg) and "@font-face" in svg
+    for e in EMOJI + ("🇮🇳", "🏁"):
+        assert e not in svg
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_ctftime_caption_labels_whole_climb(fonts, lang):
+    """The 世界/インド caption is a pill centred over all three gates, not a column header."""
+    from scripts.shrine.cards.achievement import CTF_STEP_X, render_ctftime
+
+    svg = render_ctftime(lang, fonts)
+    centre = sum(CTF_STEP_X) / len(CTF_STEP_X)
+    m = re.search(r'<g class="ctfCap">(.*?)</g><!--/ctfCap-->', svg, re.S)
+    assert m, "caption pill group"
+    cap = m.group(1)
+    assert "<rect" in cap
+    for st in ("world", "india"):
+        t = re.search(rf'<text class="ctf[AB]" x="([\d.]+)"[^>]*>{re.escape(CTFTIME["state"][st](lang))}</text>', cap)
+        assert t and float(t.group(1)) == pytest.approx(centre), st
+    # the pill clears every rank label: its bottom is above the highest label's cap height
+    rect = re.search(r'<rect x="[\d.]+" y="([\d.]+)" width="[\d.]+" height="([\d.]+)"', cap)
+    bottom = float(rect.group(1)) + float(rect.group(2))
+    label_ys = [float(y) for y in re.findall(r'<text class="ctf[AB]" x="[\d.]+" y="([\d.]+)"[^>]*>#\d+</text>', svg)]
+    assert label_ys and bottom <= min(label_ys) - 14 * 0.72, (bottom, min(label_ys))
+
+
+# ---------------------------------------------------------------- TryHackMe badge shelf (owner edit 9)
+
+from pathlib import Path  # noqa: E402
+
+from scripts.shrine.content import THM_BADGES, THM_SHELF  # noqa: E402
+
+THM_ART = Path(__file__).resolve().parent.parent / "scripts" / "build" / "art" / "thm"
+SHELF_W = {"desktop": 1200, "phone": 600}
+
+
+def _thm_images(badges=THM_BADGES) -> dict:
+    return {slug: (THM_ART / f"{slug}.png").read_bytes() for slug, _ in badges}
+
+
+def test_thm_badges_data():
+    assert [s for s, _ in THM_BADGES] == [
+        "introtooffensivesecurity", "streak7", "ohsint", "linux", "metasploit",
+        "ice", "hashcracker", "blue", "adventofcyber", "burpsuite", "introtowebsecurity",
+    ]
+    assert dict(THM_BADGES)["introtowebsecurity"] == "Intro to Web Hacking"
+    assert dict(THM_BADGES)["burpsuite"] == "Burp'ed"
+    for slug, _ in THM_BADGES:
+        data = (THM_ART / f"{slug}.png").read_bytes()
+        assert data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) < 12 * 1024, slug
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_thm_shelf(fonts, lang, layout):
+    from scripts.shrine.cards.thm_shelf import name_lines, render_thm_shelf
+
+    svg = render_thm_shelf(lang, layout, fonts, _thm_images())
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, WIDTH[layout])
+    assert min(s for s, deco in font_sizes(svg) if not deco) >= MIN_UNITS[layout]
+    assert re.search(rf'viewBox="0 0 {SHELF_W[layout]} \d+"', svg)
+    seen = visible_strings(svg)
+    joined = " ".join(seen.split())
+    assert THM_SHELF["title"](lang) in seen and THM_SHELF["stats"](lang) in seen
+    for _slug, name in THM_BADGES:
+        lines = name_lines(name, layout)  # wrapped, never truncated
+        assert " ".join(lines) == name and 1 <= len(lines) <= 2
+        assert all(line in seen for line in lines), name
+    assert "Burp'ed" in joined
+    assert svg.count("data:image/png;base64,") == len(THM_BADGES)
+    assert "@keyframes" in svg and "@font-face" in svg
+    for e in EMOJI:
+        assert e not in svg
+
+
+@pytest.mark.parametrize("layout", ["desktop", "phone"])
+def test_thm_shelf_rows(fonts, layout):
+    """The 11 badges sit in balanced rows (desktop 6 + 5), fuller rows first; a 12th still fits."""
+    from scripts.shrine.cards.thm_shelf import SLOT_W, plan, render_thm_shelf
+
+    w = SHELF_W[layout]
+    for badges in (THM_BADGES, THM_BADGES + [("ice", "Another Badge")]):
+        h, slots = plan(len(badges), layout)
+        assert len(slots) == len(badges)
+        rows = sorted({y for _, y in slots})
+        counts = [sum(1 for _, y in slots if y == r) for r in rows]
+        assert max(counts) - min(counts) <= 1 and counts == sorted(counts, reverse=True)
+        for x, y in slots:
+            assert x - SLOT_W[layout] / 2 >= 0 and x + SLOT_W[layout] / 2 <= w and 0 < y < h
+    assert [sum(1 for _, y in plan(11, layout)[1] if y == r) for r in sorted({y for _, y in plan(11, layout)[1]})] == (
+        [6, 5] if layout == "desktop" else [3, 3, 3, 2]
+    )
+    svg = render_thm_shelf("en", layout, fonts, _thm_images(), badges=THM_BADGES + [("ice", "Another Badge")])
+    assert_valid_svg(svg)
+    assert_under(svg, 500)
+
+
+def test_thm_shelf_missing_image(fonts):
+    from scripts.shrine.cards.thm_shelf import render_thm_shelf
+
+    with pytest.raises(KeyError):
+        render_thm_shelf("en", "desktop", fonts, {}, badges=[("nope", "Nope")])

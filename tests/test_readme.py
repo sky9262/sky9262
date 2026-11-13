@@ -126,7 +126,7 @@ def test_no_pending_plaques():
 def test_structure():
     for lang in FILES:
         text = _read(lang)
-        assert text.count('media="(max-width: 600px)"') == 6  # hero, can-do, stack, torii, feed, connect
+        assert text.count('media="(max-width: 600px)"') == 7  # hero, can-do, stack, torii, feed, THM shelf, connect
     assert len(re.findall(r"<picture>", _read("jp"))) == len(
         re.findall(r"<picture>", _read("en"))
     )
@@ -170,3 +170,228 @@ def test_github_renders_picture():
     )
     assert r.returncode == 0, r.stderr
     assert 'media="(max-width: 600px)"' in r.stdout
+
+
+# ---- owner-kept v2.1 items: greeting, THM/solved.ac badges, footer badges ----
+def _amp(u: str) -> str:
+    return u.replace("&", "&amp;")
+
+
+BEAR_URL = "https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90"
+_ANIM_URL = "https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets"
+OWNER_URLS = [
+    "https://docs.github.com/en/developers",
+    f"{_ANIM_URL}/devbadge.gif",
+    "https://github.com/pricing",
+    f"{_ANIM_URL}/pro.gif",
+    "https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors",
+    f"{_ANIM_URL}/sponsorbadge.gif",
+    BEAR_URL,
+    "https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0",
+    "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262",
+    "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge",
+    "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat",
+]
+GREETING_LINE = {
+    "jp": "いろいろな方とつながるのが大好きです。気軽に<b>こんにちは</b>と声をかけてください。"
+          "お会いできるのを楽しみにしています！<b>😊</b>",
+    "en": "I love connecting with different people so if you want to say <b>hi</b>, "
+          "I'll be happy to meet you more! <b>😊</b>",
+}
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_urls_once(lang):
+    text = _read(lang)
+    for u in OWNER_URLS:
+        assert text.count(f'"{u}"') == 1, (lang, u, text.count(f'"{u}"'))
+    for u in ("https://tryhackme.com/p/sky9262", "https://solved.ac/sky9262"):
+        assert text.count(f'href="{u}"') >= 1
+    assert text.count('href="https://tryhackme.com/p/sky9262"') == 3  # THM badge, badge shelf, link button
+    assert "api/mini/generate_badge" not in text  # owner removed the small solved.ac badge
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_connect_greeting(lang):
+    text = _read(lang)
+    card, first_btn = text.index("connect-desktop.svg"), text.index("btn-gmail.svg")
+    greeting = text.index(GREETING_LINE[lang])
+    assert f"<em>{GREETING_LINE[lang]}</em>" in text
+    bear = text.index(BEAR_URL)
+    badges = [text.index(u) for u in OWNER_URLS[:6:2]]
+    assert card < bear < greeting < min(badges)
+    assert max(badges) < first_btn
+    assert text.count('width="40" height="40"') == 3
+    other = "en" if lang == "jp" else "jp"
+    assert GREETING_LINE[other] not in text
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_achievement_badges(lang):
+    text = _read(lang)
+    last_tablet = text.rindex("achievement-")
+    pair = text.index(f"assets/{lang}/hackerrank.svg")
+    ctftime = text.index(f"assets/{lang}/ctftime.svg")
+    thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
+    card = text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262")
+    credly = text.index("https://www.credly.com/badges/")
+    assert last_tablet < pair < ctftime < thm < card < credly < text.index("connect-desktop.svg")
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_footer(lang):
+    from scripts.shrine.content import CONNECT
+
+    text = _read(lang)
+    signoff = text.index(CONNECT["signoff"](lang))
+    love = text.index("https://madewithlove.now.sh/")
+    views = text.index("https://komarev.com/ghpvc/")
+    assert signoff < love < views
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_html_whitelist(lang):
+    tags = set(re.findall(r"</?([a-zA-Z0-9]+)", _read(lang)))
+    assert tags <= {"p", "a", "img", "em", "b", "picture", "source", "sub", "h2", "h3"}, tags
+    assert not re.search(r'<[^>]*\s(style|class)=', _read(lang))
+
+
+# ---- owner edit 5: HackerRank shrine tablet ----
+HR_URL = "https://www.hackerrank.com/profile/sky9262"
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_hackerrank_tablet_placement(lang):
+    text = _read(lang)
+    img = f'src="assets/{lang}/hackerrank.svg"'
+    assert text.count(img) == 1
+    assert text.count(f'href="{HR_URL}"') == 1
+    m = re.search(rf'<a href="{re.escape(HR_URL)}"><img {img} width="410" alt="([^"]+)"></a>', text)
+    assert m, "HackerRank tablet must be a linked 410-wide image"
+    if lang == "jp":
+        assert JP_CHARS.search(m.group(1))
+    else:
+        assert not JP_CHARS.search(m.group(1))
+    last_tablet = text.rindex("achievement-")
+    hr = text.index(img)
+    thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
+    assert last_tablet < hr < thm
+    # its own centred paragraph, ready for a second 410-wide tablet beside it
+    para = text[text.rindex("<p", 0, hr):text.index("</p>", hr)]
+    assert para.startswith('<p align="center">') and "achievement-" not in para
+
+
+def test_extra_tablets_pair():
+    """HackerRank and picoCTF sit side by side in one centred paragraph."""
+    from scripts.build import readme
+
+    assert [name for _, name, _ in readme.EXTRA_TABLETS] == ["hackerrank", "picoctf"]
+    out = readme.tablet_rows(readme.EXTRA_TABLETS, "en")
+    assert len(out) == 1 and out[0].count("<img ") == 2
+
+
+# ---- owner edit 6: picoCTF tablet beside HackerRank ----
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_picoctf_pairs_with_hackerrank(lang):
+    text = _read(lang)
+    hr = text.index(f'src="assets/{lang}/hackerrank.svg"')
+    pico = text.index(f'src="assets/{lang}/picoctf.svg"')
+    para = text[text.rindex("<p", 0, hr):text.index("</p>", hr)]
+    assert f'<a href="https://picoctf.org"><img src="assets/{lang}/picoctf.svg" width="410" alt="' in para
+    assert hr < pico
+    assert text.count('href="https://picoctf.org"') == 1
+
+
+# ---- owner edit 7: CTFtime team tablet, alone in its row after the pair ----
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_ctftime_tablet_row(lang):
+    text = _read(lang)
+    url = "https://ctftime.org/team/75661"
+    img = f'<img src="assets/{lang}/ctftime.svg" width="410" alt="'
+    assert text.count(f'href="{url}"') == 1
+    assert f'<a href="{url}">{img}' in text
+    pos = text.index(img)
+    para = text[text.rindex("<p", 0, pos):text.index("</p>", pos)]
+    assert para.startswith('<p align="center">') and para.count("<img ") == 1
+    assert text.index("picoctf.svg") < pos
+    alt = re.search(re.escape(img) + r'([^"]+)"', text).group(1)
+    assert "warlock_rootx" in alt
+
+
+# ---- owner edit 8: Credly row (official images), no dates anywhere ----
+CREDLY = [
+    ("https://www.credly.com/badges/3f668e38-27f7-4ae8-9e03-c0a53ad18f14",
+     "https://images.credly.com/size/110x110/images/054913b2-e271-49a2-a1a4-9bf1c1f9a404/CyberEssentials.png",
+     "Cybersecurity Essentials"),
+    ("https://www.credly.com/badges/ba32f9e8-a5a3-4d36-8261-be77a22b9337",
+     "https://images.credly.com/size/110x110/images/af8c6b4e-fc31-47c4-8dcb-eb7a2065dc5b/I2CS__1_.png",
+     "Introduction to Cybersecurity"),
+]
+DATE = re.compile(
+    r"\b(19|20)\d\d\b|\d+\s*年|\d+\s*月|\d+\s*日|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\b"
+    r"|\bissued\b|発行|取得日|\d{1,4}[/.-]\d{1,2}[/.-]\d{1,4}",
+    re.I,
+)
+
+
+def _credly_row(text: str) -> str:
+    first = text.index(CREDLY[0][1])
+    return text[text.rindex("<p", 0, first):text.index("</p>", first) + 4]
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_credly_row(lang):
+    text = _read(lang)
+    row = _credly_row(text)
+    assert row.startswith('<p align="center">')
+    for href, src, name in CREDLY:
+        m = re.search(rf'<a href="{re.escape(href)}"><img src="{re.escape(src)}" width="110" alt="([^"]+)"></a>', row)
+        assert m, name
+        alt = m.group(1)
+        assert name in alt and "Cisco" in alt
+        if lang == "jp":
+            assert JP_CHARS.search(alt)
+        else:
+            assert alt.isascii()
+        assert text.count(f'"{href}"') == 1 and text.count(f'"{src}"') == 1
+    # no issue dates anywhere in the row: strip the URL values, then look for years/dates
+    visible = re.sub(r'(href|src)="[^"]*"', "", row)
+    assert not DATE.search(visible), DATE.search(visible)
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_achievements_section_order(lang):
+    """6 tablets, [HackerRank | picoCTF], [CTFtime], THM, solved.ac, Credly, then Connect."""
+    text = _read(lang)
+    marks = [
+        text.rindex("achievement-"),
+        text.index(f"assets/{lang}/hackerrank.svg"),
+        text.index(f"assets/{lang}/picoctf.svg"),
+        text.index(f"assets/{lang}/ctftime.svg"),
+        text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0"),
+        text.index(f"assets/{lang}/thm-shelf-desktop.svg"),
+        text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262"),
+        text.index(CREDLY[0][1]),
+        text.index(CREDLY[1][1]),
+        text.index("connect-desktop.svg"),
+    ]
+    assert marks == sorted(marks)
+
+
+# ---- owner edit 9: TryHackMe badge shelf after the THM badge ----
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_thm_shelf_placement(lang):
+    text = _read(lang)
+    thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
+    shelf = text.index(f"assets/{lang}/thm-shelf-desktop.svg")
+    solved = text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262")
+    assert thm < shelf < solved
+    m = re.search(
+        rf'<p align="center">\n<a href="https://tryhackme.com/p/sky9262"><picture><source media="\(max-width: 600px\)" '
+        rf'srcset="assets/{lang}/thm-shelf-phone.svg"><img src="assets/{lang}/thm-shelf-desktop.svg" width="100%" '
+        rf'alt="([^"]+)"></picture></a>\n</p>', text)
+    assert m
+    if lang == "jp":
+        assert JP_CHARS.search(m.group(1))
+    else:
+        assert m.group(1).isascii()

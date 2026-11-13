@@ -281,6 +281,72 @@ ACHIEVEMENTS: list[tuple[str, T, T]] = [
     ("jlpt", T("日本語能力試験 N3", "JLPT N3"), T("2024年 合格", "Passed 2024")),
 ]
 
+# HackerRank skill badges: (badge, stars, problems solved, tier).
+# Checked by hand on 2026-11-13 from hackerrank.com/rest/hackers/sky9262/badges and
+# refreshed by hand; static, never fetched at build time.
+HACKERRANK: list[tuple[str, int, int, Literal["gold", "silver", "bronze"]]] = [
+    ("C++", 5, 18, "gold"),
+    ("Python", 5, 26, "gold"),
+    ("Ruby", 4, 31, "silver"),
+]
+HACKERRANK_URL = "https://www.hackerrank.com/profile/sky9262"
+HACKERRANK_TEXT: dict[str, T] = {
+    "title": T("HackerRank", "HackerRank"),
+    # the sub-line names what the medals are, without repeating the title
+    "sub": T("言語別スキルバッジ", "Skill badges"),
+    "solved": T("{n}問", "{n} solved"),
+}
+
+# picoCTF practice score: owner-provided on 2026-11-13, refreshed by hand (static).
+# picoCTF has no public profile pages, so the tablet links to the site itself.
+PICOCTF: dict = {
+    "user": "sky9262",
+    "score": "11,600+",
+    "url": "https://picoctf.org",
+    "title": T("picoCTF", "picoCTF"),
+    "sub": T("CTF演習スコア", "CTF score"),
+}
+
+# CTFtime team ranking, verified from the CTFtime API on 2026-11-13; refreshed by hand
+# (static). The owner wants the team named. years: (year, global place, points, India place).
+CTFTIME: dict = {
+    "team": "warlock_rootx",
+    "country": "IN",
+    "url": "https://ctftime.org/team/75661",
+    "years": [(2019, 110, 188.0, 5), (2020, 58, 309.7, 2), (2021, 39, 355.2, 3)],
+    "role": T("チームメンバー", "Team member"),
+    "world": T("世界{n}位", "World #{n}"),
+    "india": T("インド{n}位", "India #{n}"),
+    # caption of the climb, which switches between the two rank sets
+    "state": {"world": T("世界", "World"), "india": T("インド", "India")},
+}
+
+# TryHackMe badges on the shelf card, in display order: (image slug, display name).
+# Checked 2026-11-13 against the owner's profile. Images are TryHackMe's public
+# badge PNGs (assets.tryhackme.com/img/badges/<slug>.png), downscaled into
+# scripts/build/art/thm/ by scripts.build.thm_art. Note: "burpsuite" is the Burp'ed
+# badge; "burped.png" is a different (wizard) image. "introtowebsecurity" (Intro to
+# Web Hacking) was sent by the owner on 2026-11-13. A new badge is one more line here
+# plus its downscaled image.
+THM_BADGES: list[tuple[str, str]] = [
+    ("introtooffensivesecurity", "Pentesting Principles"),
+    ("streak7", "7 Day Streak"),
+    ("ohsint", "OhSINT"),
+    ("linux", "cat linux.txt"),
+    ("metasploit", "Metasploitable"),
+    ("ice", "Ice"),
+    ("hashcracker", "Hash Cracker"),
+    ("blue", "Blue"),
+    ("adventofcyber", "Advent of Cyber 3"),
+    ("burpsuite", "Burp'ed"),
+    ("introtowebsecurity", "Intro to Web Hacking"),
+]
+THM_PROFILE = "https://tryhackme.com/p/sky9262"
+THM_SHELF: dict[str, T] = {
+    "title": T("TryHackMe バッジ", "TryHackMe badges"),
+    "stats": T("上位5% · 最長連続 253日", "Top 5% · longest streak 253 days"),
+}
+
 # ---------------------------------------------------------------- connect
 # (id, label, url), in spec table order
 LINKS: list[tuple[str, str, str]] = [

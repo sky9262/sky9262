@@ -69,7 +69,43 @@
 <img src="assets/jp/achievement-jlpt.svg" width="410" alt="日本語能力試験 N3: 2024年 合格">
 </p>
 
+<p align="center">
+<a href="https://www.hackerrank.com/profile/sky9262"><img src="assets/jp/hackerrank.svg" width="410" alt="HackerRankのスキルバッジ: C++ 星5（18問）、Python 星5（26問）、Ruby 星4（31問）"></a>
+<a href="https://picoctf.org"><img src="assets/jp/picoctf.svg" width="410" alt="picoCTF（sky9262）: CTF演習スコア 11,600+点"></a>
+</p>
+
+<p align="center">
+<a href="https://ctftime.org/team/75661"><img src="assets/jp/ctftime.svg" width="410" alt="CTFtimeチーム warlock_rootx のメンバー: 世界39位（2021年）、インド2位（2020年）"></a>
+</p>
+
+<p align="center">
+<a href="https://tryhackme.com/p/sky9262"><img src="https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0" alt="TryHackMe（sky9262）のバッジ"></a>
+</p>
+
+<p align="center">
+<a href="https://tryhackme.com/p/sky9262"><picture><source media="(max-width: 600px)" srcset="assets/jp/thm-shelf-phone.svg"><img src="assets/jp/thm-shelf-desktop.svg" width="100%" alt="TryHackMeで獲得したバッジ（上位5%・最長連続253日）: Pentesting Principles、7 Day Streak、OhSINT、cat linux.txt、Metasploitable、Ice、Hash Cracker、Blue、Advent of Cyber 3、Burp'ed、Intro to Web Hacking"></picture></a>
+</p>
+
+<p align="center">
+<a href="https://solved.ac/sky9262"><img src="http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262" alt="Solved.ac（sky9262）の実績"></a>
+</p>
+
+<p align="center">
+<a href="https://www.credly.com/badges/3f668e38-27f7-4ae8-9e03-c0a53ad18f14"><img src="https://images.credly.com/size/110x110/images/054913b2-e271-49a2-a1a4-9bf1c1f9a404/CyberEssentials.png" width="110" alt="Credlyバッジ: Cybersecurity Essentials（Cisco）"></a>
+<a href="https://www.credly.com/badges/ba32f9e8-a5a3-4d36-8261-be77a22b9337"><img src="https://images.credly.com/size/110x110/images/af8c6b4e-fc31-47c4-8dcb-eb7a2065dc5b/I2CS__1_.png" width="110" alt="Credlyバッジ: Introduction to Cybersecurity（Cisco）"></a>
+</p>
+
 <picture><source media="(max-width: 600px)" srcset="assets/jp/connect-phone.svg"><img src="assets/jp/connect-desktop.svg" width="100%" alt="ご縁: 連絡先"></picture>
+
+<p align="center">
+<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60" alt="手を振るクマ"> <em>いろいろな方とつながるのが大好きです。気軽に<b>こんにちは</b>と声をかけてください。お会いできるのを楽しみにしています！<b>😊</b></em>
+</p>
+
+<p align="center">
+<a href="https://docs.github.com/en/developers"><img src="https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/devbadge.gif" width="40" height="40" alt="GitHub開発者ドキュメント"></a>
+<a href="https://github.com/pricing"><img src="https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/pro.gif" width="40" height="40" alt="GitHub Proの料金プラン"></a>
+<a href="https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors"><img src="https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/sponsorbadge.gif" width="40" height="40" alt="GitHubスポンサーの案内"></a>
+</p>
 
 <p align="center">
 <a href="mailto:akash2002.pat@gmail.com"><img src="assets/common/btn-gmail.svg" alt="Gmailで連絡"></a>
@@ -86,3 +122,8 @@
 </p>
 
 <p align="center"><sub>ご参拝いただき、ありがとうございました。</sub></p>
+
+<p align="center">
+<img src="https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge" alt="インドで愛を込めて作りました">
+<img src="https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat" alt="プロフィールの閲覧数">
+</p>

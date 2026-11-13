@@ -9,7 +9,9 @@ from scripts.build import sources
 from scripts.build.readme import FILE, render_readme
 from scripts.build.subset import SubsetFonts, build_runtime_fonts
 from scripts.shrine import content, labels
-from scripts.shrine.cards.achievement import render_achievement
+from scripts.shrine.cards.achievement import (
+    render_achievement, render_ctftime, render_hackerrank, render_picoctf,
+)
 from scripts.shrine.cards.button import render_button, render_toggle
 from scripts.shrine.cards.cando import render_cando
 from scripts.shrine.cards.connect import render_connect
@@ -17,6 +19,7 @@ from scripts.shrine.cards.divider import render_divider
 from scripts.shrine.cards.hero import render_hero
 from scripts.shrine.cards.plaque import render_plaque
 from scripts.shrine.cards.stack import render_stack
+from scripts.shrine.cards.thm_shelf import render_thm_shelf
 from scripts.shrine.fonts import FONT_DIR
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -61,6 +64,7 @@ def build(output_branch: str) -> None:
     build_runtime_fonts(FONT_DIR, runtime_text(), serif_dir=serif, mono_dir=mono)
     fonts = SubsetFonts(serif, mono)
     assets = ROOT / "assets"
+    thm_images = {slug: (ART / "thm" / f"{slug}.png").read_bytes() for slug, _name in content.THM_BADGES}
     for lang in LANGS:
         d = assets / lang
         for layout in LAYOUTS:
@@ -70,11 +74,15 @@ def build(output_branch: str) -> None:
             _write(d / f"cando-{layout}.svg", render_cando(lang, layout, fonts))
             _write(d / f"stack-{layout}.svg", render_stack(lang, layout, fonts))
             _write(d / f"connect-{layout}.svg", render_connect(lang, layout, fonts))
+            _write(d / f"thm-shelf-{layout}.svg", render_thm_shelf(lang, layout, fonts, thm_images))
         for i, p in enumerate(content.active_plaques()):
             if p.id != LIVE_PLAQUE:
                 _write(d / f"plaque-{p.id}.svg", render_plaque(p, lang, i, fonts))
         for aid, _t, _d in content.ACHIEVEMENTS:
             _write(d / f"achievement-{aid}.svg", render_achievement(aid, lang, fonts))
+        _write(d / "hackerrank.svg", render_hackerrank(lang, fonts))
+        _write(d / "picoctf.svg", render_picoctf(lang, fonts))
+        _write(d / "ctftime.svg", render_ctftime(lang, fonts))
         _write(d / "toggle.svg", render_toggle(lang, fonts))
         _write(ROOT / FILE[lang], render_readme(lang, output_branch))
     for lid, _label, _url in content.LINKS:
