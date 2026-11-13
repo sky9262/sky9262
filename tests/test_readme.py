@@ -188,7 +188,6 @@ OWNER_URLS = [
     f"{_ANIM_URL}/sponsorbadge.gif",
     BEAR_URL,
     "https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0",
-    "http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262",
     "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262",
     "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge",
     "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat",
@@ -209,6 +208,7 @@ def test_owner_urls_once(lang):
     for u in ("https://tryhackme.com/p/sky9262", "https://solved.ac/sky9262"):
         assert text.count(f'href="{u}"') >= 1
     assert text.count('href="https://tryhackme.com/p/sky9262"') == 2  # THM badge + link button
+    assert "api/mini/generate_badge" not in text  # owner removed the small solved.ac badge
 
 
 @pytest.mark.parametrize("lang", ["jp", "en"])
@@ -230,9 +230,9 @@ def test_owner_connect_greeting(lang):
 def test_owner_achievement_badges(lang):
     text = _read(lang)
     last_tablet = text.rindex("achievement-")
-    order = [text.index(u) for u in OWNER_URLS[7:10]]
-    assert last_tablet < order[0] < order[1] < order[2]
-    assert order[2] < text.index("connect-desktop.svg")
+    thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
+    card = text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262")
+    assert last_tablet < thm < card < text.index("connect-desktop.svg")
 
 
 @pytest.mark.parametrize("lang", ["jp", "en"])
@@ -241,7 +241,9 @@ def test_owner_footer(lang):
 
     text = _read(lang)
     signoff = text.index(CONNECT["signoff"](lang))
-    assert signoff < text.index(OWNER_URLS[10]) < text.index(OWNER_URLS[11])
+    love = text.index("https://madewithlove.now.sh/")
+    views = text.index("https://komarev.com/ghpvc/")
+    assert signoff < love < views
 
 
 @pytest.mark.parametrize("lang", ["jp", "en"])

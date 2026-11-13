@@ -71,7 +71,6 @@ GH_BADGES = [
 THM_URL = "https://tryhackme.com/p/sky9262"
 THM_IMG = "https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0"
 SOLVED_URL = "https://solved.ac/sky9262"
-SOLVED_MINI = "http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262"
 SOLVED_CARD = "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262"
 OWNER_ALT = {
     "thm": {"jp": "TryHackMe（sky9262）のバッジ", "en": "TryHackMe - sky9262"},
@@ -177,8 +176,6 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     blocks += _pairs(ach)
     blocks.append(_centered(
         f'<a href="{THM_URL}"><img src="{THM_IMG}" alt="{OWNER_ALT["thm"][lang]}"></a>'))
-    blocks.append(_centered(
-        f'<a href="{SOLVED_URL}"><img src="{SOLVED_MINI}" alt="{OWNER_ALT["solved"][lang]}"></a>'))
     blocks.append(_centered(
         f'<a href="{SOLVED_URL}"><img src="{SOLVED_CARD}" alt="{OWNER_ALT["solved"][lang]}"></a>'))
     # 7. connect

@@ -74,10 +74,6 @@
 </p>
 
 <p align="center">
-<a href="https://solved.ac/sky9262"><img src="http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262" alt="Solved.ac（sky9262）の実績"></a>
-</p>
-
-<p align="center">
 <a href="https://solved.ac/sky9262"><img src="http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262" alt="Solved.ac（sky9262）の実績"></a>
 </p>
 
