@@ -835,3 +835,24 @@ def test_ctftime(fonts, lang):
     assert re.search(r'class="sway"', svg) and "@font-face" in svg
     for e in EMOJI + ("🇮🇳", "🏁"):
         assert e not in svg
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_ctftime_caption_labels_whole_climb(fonts, lang):
+    """The 世界/インド caption is a pill centred over all three gates, not a column header."""
+    from scripts.shrine.cards.achievement import CTF_STEP_X, render_ctftime
+
+    svg = render_ctftime(lang, fonts)
+    centre = sum(CTF_STEP_X) / len(CTF_STEP_X)
+    m = re.search(r'<g class="ctfCap">(.*?)</g><!--/ctfCap-->', svg, re.S)
+    assert m, "caption pill group"
+    cap = m.group(1)
+    assert "<rect" in cap
+    for st in ("world", "india"):
+        t = re.search(rf'<text class="ctf[AB]" x="([\d.]+)"[^>]*>{re.escape(CTFTIME["state"][st](lang))}</text>', cap)
+        assert t and float(t.group(1)) == pytest.approx(centre), st
+    # the pill clears every rank label: its bottom is above the highest label's cap height
+    rect = re.search(r'<rect x="[\d.]+" y="([\d.]+)" width="[\d.]+" height="([\d.]+)"', cap)
+    bottom = float(rect.group(1)) + float(rect.group(2))
+    label_ys = [float(y) for y in re.findall(r'<text class="ctf[AB]" x="[\d.]+" y="([\d.]+)"[^>]*>#\d+</text>', svg)]
+    assert label_ys and bottom <= min(label_ys) - 14 * 0.72, (bottom, min(label_ys))

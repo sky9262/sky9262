@@ -673,7 +673,7 @@ CTF_YEAR_Y = 167
 TORII_VIS = (22 - 5.2) / 24  # visible height of GLYPH['torii'] per unit of icon size
 CTF_STEP_X = (240, 292, 344)
 CTF_CYCLE = 8  # s: A hold 0-42.5%, fade to 50%, B hold to 92.5%, fade back to 100%
-CTF_H_MIN, CTF_H_MAX = 14, 30  # visible torii height for the worst and the best place
+CTF_H_MIN, CTF_H_MAX = 14, 26  # visible torii height for the worst and the best place
 
 
 def _ctf_keys(a: str, b: str) -> str:
@@ -743,11 +743,11 @@ def _ctf_tablet(lang: Lang, i: int) -> str:
     total = 22 + rw + 22 + tw
     x = CX - total / 2
     head = (
-        _pennant(x + 2, 80)
-        + f'<g filter="url(#carve)"><text x="{_g(x + 22)}" y="86" {SERIF} font-size="15" font-weight="700" fill="{P["ink-red"]}" '
+        _pennant(x + 2, 76)
+        + f'<g filter="url(#carve)"><text x="{_g(x + 22)}" y="82" {SERIF} font-size="15" font-weight="700" fill="{P["ink-red"]}" '
         f'letter-spacing="0.5">{esc(role)}</text>'
-        f'<path d="M{_g(x + 22 + rw + 7)},80 l4,-4 l4,4 l-4,4 z" fill="{P["ink-red"]}"/>'
-        f'<text x="{_g(x + 22 + rw + 22)}" y="86" {SERIF} font-size="20" font-weight="700" fill="{P["ink-a"]}">{esc(team)}</text></g>'
+        f'<path d="M{_g(x + 22 + rw + 7)},76 l4,-4 l4,4 l-4,4 z" fill="{P["ink-red"]}"/>'
+        f'<text x="{_g(x + 22 + rw + 22)}" y="82" {SERIF} font-size="20" font-weight="700" fill="{P["ink-a"]}">{esc(team)}</text></g>'
     )
     x0, y0, x1, y1 = CTF_PANEL
     panel = (
@@ -799,14 +799,21 @@ def _ctf_tablet(lang: Lang, i: int) -> str:
             f'<text x="{sx}" y="{CTF_YEAR_Y}" text-anchor="middle" {SERIF} font-size="14" fill="{P["text-soft-b"]}">{year}</text>'
             "</g>"
         )
-    # the state caption sits above the gate that is lowest in both states
-    k_low = min(range(len(years)), key=lambda k: max(hw[k], hi[k]))
-    cap_y = CTF_GROUND - max(hw[k_low], hi[k_low]) - 4 - 16
-    cap_x = CTF_STEP_X[k_low]
-    caption = "".join(
-        f'<text class="{cls}" x="{cap_x}" y="{_g(cap_y)}" text-anchor="middle" {SERIF} font-size="14" font-weight="700" '
-        f'fill="{P["sakura-a"]}" letter-spacing="1" style="opacity:{op}">{esc(CTFTIME["state"][st](lang))}</text>'
-        for cls, st, op in (("ctfA", "world", 1), ("ctfB", "india", 0))
+    # the state caption: a tab-like pill on the panel's top rim, centred over all three gates
+    cap_x = sum(CTF_STEP_X) / len(CTF_STEP_X)
+    words = [CTFTIME["state"][st](lang) for st in ("world", "india")]
+    pill_w = max(text_width(w, 14, weight=700, letter_spacing=1) for w in words) + 22
+    pill_h, pill_y = 17, y0 - 8
+    caption = (
+        '<g class="ctfCap">'
+        f'<rect x="{_g(cap_x - pill_w / 2)}" y="{pill_y}" width="{_g(pill_w)}" height="{pill_h}" rx="9" '
+        f'fill="{P["ink-red"]}" stroke="{P["lantern-gold"]}" stroke-width="1.2"/>'
+        + "".join(
+            f'<text class="{cls}" x="{_g(cap_x)}" y="{pill_y + 12.8}" text-anchor="middle" {SERIF} font-size="14" '
+            f'font-weight="700" fill="{P["moon-a"]}" letter-spacing="1" style="opacity:{op}">{esc(w)}</text>'
+            for cls, w, op in (("ctfA", words[0], 1), ("ctfB", words[1], 0))
+        )
+        + "</g><!--/ctfCap-->"
     )
     climb = (
         f'<path d="M{CTF_SPLIT + 14},{CTF_GROUND} H{x1 - 12}" stroke="{P["text-soft-b"]}" stroke-opacity="0.5" stroke-width="1"/>'
