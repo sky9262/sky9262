@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from scripts.shrine.content import (
-    ACHIEVEMENTS, LINKS, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
+    ACHIEVEMENTS, HACKERRANK, HACKERRANK_URL, LINKS, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
 )
 
 RAW = "https://raw.githubusercontent.com/sky9262/sky9262"
@@ -50,6 +50,27 @@ ACH_ALT_EN = {
     "tryhackme": "TryHackMe, top 5 percent",
     "jlpt": "JLPT N3, passed 2024",
 }
+
+
+def _hackerrank_alt(lang: str) -> str:
+    if lang == "jp":
+        return "HackerRankのスキルバッジ: " + "、".join(f"{b} 星{st}（{n}問）" for b, st, n, _ in HACKERRANK)
+    return "HackerRank skill badges: " + ", ".join(f"{b} {st} stars ({n} solved)" for b, st, n, _ in HACKERRANK)
+
+
+# 410-wide shrine tablets after the six achievements, paired two per centred row
+# (url, asset name, alt per language). A picoCTF tablet will join HackerRank here.
+EXTRA_TABLETS: list[tuple[str, str, dict[str, str]]] = [
+    (HACKERRANK_URL, "hackerrank", {lang: _hackerrank_alt(lang) for lang in ("jp", "en")}),
+]
+
+
+def tablet_rows(tablets: list[tuple[str, str, dict[str, str]]], lang: str) -> list[str]:
+    return _pairs([
+        f'<a href="{url}">{_img(f"assets/{lang}/{name}.svg", alt[lang])}</a>'
+        for url, name, alt in tablets
+    ])
+
 
 BEAR = "https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90"
 GREETING = {
@@ -174,6 +195,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
         for aid, t, d in ACHIEVEMENTS
     ]
     blocks += _pairs(ach)
+    blocks += tablet_rows(EXTRA_TABLETS, lang)
     blocks.append(_centered(
         f'<a href="{THM_URL}"><img src="{THM_IMG}" alt="{OWNER_ALT["thm"][lang]}"></a>'))
     blocks.append(_centered(

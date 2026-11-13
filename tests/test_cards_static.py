@@ -712,3 +712,45 @@ def test_misc_metrics_match_fonts():
         cmap, hm = f.getBestCmap(), f["hmtx"]
         for ch in set(text):
             assert text_width(ch, 1000, weight=weight) == pytest.approx(hm[cmap[ord(ch)]][0]), (ch, weight)
+
+
+# ---------------------------------------------------------------- HackerRank tablet (owner edit 5)
+
+from scripts.shrine.cards.achievement import render_hackerrank  # noqa: E402
+from scripts.shrine.content import HACKERRANK, HACKERRANK_TEXT  # noqa: E402
+
+
+def test_hackerrank_data():
+    assert [(b, s, n, t) for b, s, n, t in HACKERRANK] == [
+        ("C++", 5, 18, "gold"), ("Python", 5, 26, "gold"), ("Ruby", 4, 31, "silver"),
+    ]
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_hackerrank(fonts, lang):
+    svg = render_hackerrank(lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 360)  # >= 14 units at 410 -> 360
+    assert 'viewBox="0 0 410 200"' in svg
+    seen = visible_strings(svg)
+    assert HACKERRANK_TEXT["title"](lang) in seen
+    assert HACKERRANK_TEXT["sub"](lang) in seen
+    for badge, stars, solved, tier in HACKERRANK:
+        assert badge in seen, badge
+        assert HACKERRANK_TEXT["solved"](lang).format(n=solved) in seen
+        # each medal draws exactly its stars, as star glyph paths
+        m = re.search(rf'<g class="medal" data-badge="{re.escape(badge)}" data-stars="(\d)"(.*?)</g><!--/medal-->', svg, re.S)
+        assert m, badge
+        assert int(m.group(1)) == stars
+        assert m.group(2).count(GLYPH["star"]) == stars, badge
+        assert f'data-tier="{tier}"' in m.group(2)
+    from scripts.shrine.icons import BRAND
+    assert BRAND["Python"][0] in svg  # the reused Simple Icons logo
+    assert "@font-face" in svg
+    for e in EMOJI + ("💎", "🐍"):
+        assert e not in svg
+    assert re.search(r'class="sway"', svg)
+    other = "en" if lang == "jp" else "jp"
+    assert HACKERRANK_TEXT["sub"](other) not in seen

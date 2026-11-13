@@ -281,6 +281,22 @@ ACHIEVEMENTS: list[tuple[str, T, T]] = [
     ("jlpt", T("日本語能力試験 N3", "JLPT N3"), T("2024年 合格", "Passed 2024")),
 ]
 
+# HackerRank skill badges: (badge, stars, problems solved, tier).
+# Checked by hand on 2026-11-13 from hackerrank.com/rest/hackers/sky9262/badges and
+# refreshed by hand; static, never fetched at build time.
+HACKERRANK: list[tuple[str, int, int, Literal["gold", "silver", "bronze"]]] = [
+    ("C++", 5, 18, "gold"),
+    ("Python", 5, 26, "gold"),
+    ("Ruby", 4, 31, "silver"),
+]
+HACKERRANK_URL = "https://www.hackerrank.com/profile/sky9262"
+HACKERRANK_TEXT: dict[str, T] = {
+    "title": T("HackerRank", "HackerRank"),
+    # the sub-line names what the medals are, without repeating the title
+    "sub": T("言語別スキルバッジ", "Skill badges"),
+    "solved": T("{n}問", "{n} solved"),
+}
+
 # ---------------------------------------------------------------- connect
 # (id, label, url), in spec table order
 LINKS: list[tuple[str, str, str]] = [

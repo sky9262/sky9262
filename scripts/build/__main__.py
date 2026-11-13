@@ -9,7 +9,7 @@ from scripts.build import sources
 from scripts.build.readme import FILE, render_readme
 from scripts.build.subset import SubsetFonts, build_runtime_fonts
 from scripts.shrine import content, labels
-from scripts.shrine.cards.achievement import render_achievement
+from scripts.shrine.cards.achievement import render_achievement, render_hackerrank
 from scripts.shrine.cards.button import render_button, render_toggle
 from scripts.shrine.cards.cando import render_cando
 from scripts.shrine.cards.connect import render_connect
@@ -75,6 +75,7 @@ def build(output_branch: str) -> None:
                 _write(d / f"plaque-{p.id}.svg", render_plaque(p, lang, i, fonts))
         for aid, _t, _d in content.ACHIEVEMENTS:
             _write(d / f"achievement-{aid}.svg", render_achievement(aid, lang, fonts))
+        _write(d / "hackerrank.svg", render_hackerrank(lang, fonts))
         _write(d / "toggle.svg", render_toggle(lang, fonts))
         _write(ROOT / FILE[lang], render_readme(lang, output_branch))
     for lid, _label, _url in content.LINKS:

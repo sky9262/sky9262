@@ -251,3 +251,37 @@ def test_owner_html_whitelist(lang):
     tags = set(re.findall(r"</?([a-zA-Z0-9]+)", _read(lang)))
     assert tags <= {"p", "a", "img", "em", "b", "picture", "source", "sub", "h2", "h3"}, tags
     assert not re.search(r'<[^>]*\s(style|class)=', _read(lang))
+
+
+# ---- owner edit 5: HackerRank shrine tablet ----
+HR_URL = "https://www.hackerrank.com/profile/sky9262"
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_hackerrank_tablet_placement(lang):
+    text = _read(lang)
+    img = f'src="assets/{lang}/hackerrank.svg"'
+    assert text.count(img) == 1
+    assert text.count(f'href="{HR_URL}"') == 1
+    m = re.search(rf'<a href="{re.escape(HR_URL)}"><img {img} width="410" alt="([^"]+)"></a>', text)
+    assert m, "HackerRank tablet must be a linked 410-wide image"
+    if lang == "jp":
+        assert JP_CHARS.search(m.group(1))
+    else:
+        assert not JP_CHARS.search(m.group(1))
+    last_tablet = text.rindex("achievement-")
+    hr = text.index(img)
+    thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
+    assert last_tablet < hr < thm
+    # its own centred paragraph, ready for a second 410-wide tablet beside it
+    para = text[text.rindex("<p", 0, hr):text.index("</p>", hr)]
+    assert para.startswith('<p align="center">') and "achievement-" not in para
+
+
+def test_extra_tablets_pair():
+    """A second tablet (picoCTF, later) sits beside HackerRank in the same paragraph."""
+    from scripts.build import readme
+
+    extra = readme.EXTRA_TABLETS + [("https://example.org/pico", "picoctf", {"jp": "ピコ", "en": "pico"})]
+    out = readme.tablet_rows(extra, "en")
+    assert len(out) == 1 and out[0].count("<img ") == 2

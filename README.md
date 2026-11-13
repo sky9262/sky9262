@@ -70,6 +70,10 @@
 </p>
 
 <p align="center">
+<a href="https://www.hackerrank.com/profile/sky9262"><img src="assets/jp/hackerrank.svg" width="410" alt="HackerRankのスキルバッジ: C++ 星5（18問）、Python 星5（26問）、Ruby 星4（31問）"></a>
+</p>
+
+<p align="center">
 <a href="https://tryhackme.com/p/sky9262"><img src="https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0" alt="TryHackMe（sky9262）のバッジ"></a>
 </p>
 
