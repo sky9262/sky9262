@@ -754,3 +754,32 @@ def test_hackerrank(fonts, lang):
     assert re.search(r'class="sway"', svg)
     other = "en" if lang == "jp" else "jp"
     assert HACKERRANK_TEXT["sub"](other) not in seen
+
+
+# ---------------------------------------------------------------- picoCTF tablet (owner edit 6)
+
+from scripts.shrine.content import PICOCTF  # noqa: E402
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_picoctf(fonts, lang):
+    from scripts.shrine.cards.achievement import render_picoctf
+
+    svg = render_picoctf(lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 360)
+    assert 'viewBox="0 0 410 200"' in svg
+    seen = visible_strings(svg)
+    assert PICOCTF["title"](lang) in seen
+    assert PICOCTF["sub"](lang) in seen
+    assert PICOCTF["score"] == "11,600+" and PICOCTF["score"] in seen
+    assert PICOCTF["user"] == "sky9262" and f"pts · {PICOCTF['user']}" in seen
+    assert "pico" in seen  # the small mark under the flag
+    other = "en" if lang == "jp" else "jp"
+    if PICOCTF["sub"](other) != PICOCTF["sub"](lang):
+        assert PICOCTF["sub"](other) not in seen
+    assert re.search(r'class="sway"', svg) and "@font-face" in svg
+    for e in EMOJI + ("🚩",):
+        assert e not in svg

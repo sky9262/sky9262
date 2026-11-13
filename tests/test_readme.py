@@ -279,9 +279,21 @@ def test_hackerrank_tablet_placement(lang):
 
 
 def test_extra_tablets_pair():
-    """A second tablet (picoCTF, later) sits beside HackerRank in the same paragraph."""
+    """HackerRank and picoCTF sit side by side in one centred paragraph."""
     from scripts.build import readme
 
-    extra = readme.EXTRA_TABLETS + [("https://example.org/pico", "picoctf", {"jp": "ピコ", "en": "pico"})]
-    out = readme.tablet_rows(extra, "en")
+    assert [name for _, name, _ in readme.EXTRA_TABLETS] == ["hackerrank", "picoctf"]
+    out = readme.tablet_rows(readme.EXTRA_TABLETS, "en")
     assert len(out) == 1 and out[0].count("<img ") == 2
+
+
+# ---- owner edit 6: picoCTF tablet beside HackerRank ----
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_picoctf_pairs_with_hackerrank(lang):
+    text = _read(lang)
+    hr = text.index(f'src="assets/{lang}/hackerrank.svg"')
+    pico = text.index(f'src="assets/{lang}/picoctf.svg"')
+    para = text[text.rindex("<p", 0, hr):text.index("</p>", hr)]
+    assert f'<a href="https://picoctf.org"><img src="assets/{lang}/picoctf.svg" width="410" alt="' in para
+    assert hr < pico
+    assert text.count('href="https://picoctf.org"') == 1

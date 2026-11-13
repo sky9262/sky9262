@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from scripts.shrine.content import (
-    ACHIEVEMENTS, HACKERRANK, HACKERRANK_URL, LINKS, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
+    ACHIEVEMENTS, HACKERRANK, HACKERRANK_URL, LINKS, PICOCTF, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
 )
 
 RAW = "https://raw.githubusercontent.com/sky9262/sky9262"
@@ -62,6 +62,10 @@ def _hackerrank_alt(lang: str) -> str:
 # (url, asset name, alt per language). A picoCTF tablet will join HackerRank here.
 EXTRA_TABLETS: list[tuple[str, str, dict[str, str]]] = [
     (HACKERRANK_URL, "hackerrank", {lang: _hackerrank_alt(lang) for lang in ("jp", "en")}),
+    (PICOCTF["url"], "picoctf", {
+        "jp": f"picoCTF（{PICOCTF['user']}）: CTF演習スコア {PICOCTF['score']}点",
+        "en": f"picoCTF ({PICOCTF['user']}): CTF score {PICOCTF['score']} points",
+    }),
 ]
 
 

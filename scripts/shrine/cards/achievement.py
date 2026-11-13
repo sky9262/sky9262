@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import math
 
-from ..content import ACHIEVEMENTS, HACKERRANK, HACKERRANK_TEXT, Lang
+from ..content import ACHIEVEMENTS, HACKERRANK, HACKERRANK_TEXT, PICOCTF, Lang
 from ..icons import BRAND, GLYPH, icon
 from ..metrics import text_width, wrap
 from ..palette import PALETTE as P
@@ -582,3 +582,74 @@ def render_hackerrank(lang: Lang, fonts) -> str:
     summary = " · ".join(f"{b} {st}/5, {HACKERRANK_TEXT['solved'](lang).format(n=n)}" for b, st, n, _ in HACKERRANK)
     title = f"{HACKERRANK_TEXT['title'](lang)} · {HACKERRANK_TEXT['sub'](lang)} · {summary}"
     return _card(i, -2.9, _hr_tablet(lang, i), title, HR_GREEN, fonts, defs=_hr_defs())
+
+
+# ---------------------------------------------------------------- picoCTF (owner edit 6)
+#
+# Same layout as the achievement tablets: a lacquered window on the left with a
+# capture-the-flag pennant over a small "pico" mark, and on the right the title, the
+# sub-line, the score set large and "pts · <user>" in mono.
+
+MONO = 'font-family="Shrine Mono"'
+PICO_ACCENT = P["circuit-cyan"]
+
+
+def _pico_emblem() -> str:
+    c, gold = P["circuit-cyan"], P["lantern-gold"]
+    return (
+        f'<rect x="-15.5" y="-32" width="3" height="44" rx="1.5" fill="url(#gold)"/>'
+        f'<circle cx="-14" cy="-33" r="3.2" fill="{gold}"/>'
+        f'<g class="wave"><path d="M-12.5,-29 C-3,-34 6,-23 22,-28 L22,-5 C6,0 -3,-11 -12.5,-6 Z" fill="{c}"/>'
+        f'<path d="M-12.5,-29 C-3,-34 6,-23 22,-28 L22,-24 C6,-19 -3,-30 -12.5,-25 Z" fill="#fff" opacity="0.3"/>'
+        # a terminal prompt on the flag
+        f'<path d="M-3,-22.5 l5,4.2 l-5,4.2" fill="none" stroke="{P["night-0"]}" stroke-width="2.2" '
+        'stroke-linecap="round" stroke-linejoin="round"/>'
+        f'<path d="M4.5,-13.5 h8" stroke="{P["night-0"]}" stroke-width="2.2" stroke-linecap="round"/></g>'
+        f'<path d="M-24,12 h20" stroke="{gold}" stroke-opacity="0.6" stroke-width="1.2"/>'
+        f'<text x="0" y="30" text-anchor="middle" {MONO} font-size="14" font-weight="700" fill="{c}" '
+        'letter-spacing="1">pico</text>'
+    )
+
+
+def _pico_tablet(lang: Lang, i: int) -> str:
+    wx, wy = WIN_C
+    title, sub = PICOCTF["title"](lang), PICOCTF["sub"](lang)
+    score, small = PICOCTF["score"], f"pts · {PICOCTF['user']}"
+    score_size = 34
+    for t, size, kw in ((title, 21, {"weight": 700}), (sub, 15, {}), (score, score_size, {"weight": 700})):
+        if text_width(t, size, **kw) > TEXT_W:
+            raise ValueError(f"picoCTF text does not fit: {t}")
+    window = (
+        f'<g transform="translate({wx},{wy})">'
+        f'<circle r="{WIN_R + 3}" fill="{P["ink-a"]}" opacity="0.35"/>'
+        f'<circle r="{WIN_R}" fill="url(#lacquer)" stroke="{P["lantern-gold"]}" stroke-opacity="0.8" stroke-width="1.8"/>'
+        f'<circle r="{WIN_R - 4}" fill="none" stroke="{P["lantern-gold"]}" stroke-opacity="0.25" stroke-width="0.8"/>'
+        f'<circle r="{WIN_R - 6}" fill="url(#halo)" class="halo" style="animation-delay:{-0.9 * i:g}s"/>'
+        f'<g clip-path="url(#win)"><g filter="url(#eglow)">{_pico_emblem()}</g></g>'
+        f'<path class="glint" d="M30,-30 l2,-8 l2,8 l8,2 l-8,2 l-2,8 l-2,-8 l-8,-2 z" fill="#fff" '
+        f'style="animation-delay:{-0.8 * i:g}s"/>'
+        "</g>"
+    )
+    x = TEXT_X
+    tw = text_width(title, 21, weight=700)
+    sub_x = x + tw + 22
+    if sub_x + text_width(sub, 15, weight=700, letter_spacing=0.5) > TEXT_X + TEXT_W:
+        raise ValueError(f"picoCTF header ({lang}) does not fit")
+    text = (
+        f'<g filter="url(#carve)">'
+        f'<text x="{x}" y="96" {SERIF} font-size="21" font-weight="700" fill="{P["ink-a"]}">{esc(title)}</text>'
+        f'<path d="M{_g(x + tw + 7)},89 l4,-4 l4,4 l-4,4 z" fill="{P["ink-red"]}"/>'
+        f'<text x="{_g(sub_x)}" y="96" {SERIF} font-size="15" font-weight="700" fill="{P["ink-red"]}" letter-spacing="0.5">{esc(sub)}</text>'
+        f'<rect x="{x}" y="106.4" width="150" height="1.2" fill="url(#divider)"/>'
+        f'<text x="{x - 1}" y="143" {SERIF} font-size="{score_size}" font-weight="700" fill="{P["ink-red"]}" letter-spacing="0.5">{esc(score)}</text>'
+        f'<text x="{x + 1}" y="165" {MONO} font-size="14" fill="{P["ink-b"]}">{esc(small)}</text>'
+        "</g>"
+    )
+    return _hanging(i) + window + text
+
+
+def render_picoctf(lang: Lang, fonts) -> str:
+    """picoCTF practice score (content.PICOCTF) on a tablet of the achievements family, 410x200."""
+    i = len(ACHIEVEMENTS) + 1
+    title = f"{PICOCTF['title'](lang)} · {PICOCTF['sub'](lang)} · {PICOCTF['score']} pts · {PICOCTF['user']}"
+    return _card(i, -3.8, _pico_tablet(lang, i), title, PICO_ACCENT, fonts)

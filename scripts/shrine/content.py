@@ -297,6 +297,16 @@ HACKERRANK_TEXT: dict[str, T] = {
     "solved": T("{n}問", "{n} solved"),
 }
 
+# picoCTF practice score: owner-provided on 2026-11-13, refreshed by hand (static).
+# picoCTF has no public profile pages, so the tablet links to the site itself.
+PICOCTF: dict = {
+    "user": "sky9262",
+    "score": "11,600+",
+    "url": "https://picoctf.org",
+    "title": T("picoCTF", "picoCTF"),
+    "sub": T("CTF演習スコア", "CTF score"),
+}
+
 # ---------------------------------------------------------------- connect
 # (id, label, url), in spec table order
 LINKS: list[tuple[str, str, str]] = [

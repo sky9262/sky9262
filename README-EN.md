@@ -71,6 +71,7 @@
 
 <p align="center">
 <a href="https://www.hackerrank.com/profile/sky9262"><img src="assets/en/hackerrank.svg" width="410" alt="HackerRank skill badges: C++ 5 stars (18 solved), Python 5 stars (26 solved), Ruby 4 stars (31 solved)"></a>
+<a href="https://picoctf.org"><img src="assets/en/picoctf.svg" width="410" alt="picoCTF (sky9262): CTF score 11,600+ points"></a>
 </p>
 
 <p align="center">

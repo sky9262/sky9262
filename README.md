@@ -71,6 +71,7 @@
 
 <p align="center">
 <a href="https://www.hackerrank.com/profile/sky9262"><img src="assets/jp/hackerrank.svg" width="410" alt="HackerRankのスキルバッジ: C++ 星5（18問）、Python 星5（26問）、Ruby 星4（31問）"></a>
+<a href="https://picoctf.org"><img src="assets/jp/picoctf.svg" width="410" alt="picoCTF（sky9262）: CTF演習スコア 11,600+点"></a>
 </p>
 
 <p align="center">
