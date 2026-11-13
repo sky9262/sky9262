@@ -321,6 +321,30 @@ CTFTIME: dict = {
     "state": {"world": T("世界", "World"), "india": T("インド", "India")},
 }
 
+# TryHackMe badges on the shelf card, in display order: (image slug, display name).
+# Checked 2026-11-13 against the owner's profile. Images are TryHackMe's public
+# badge PNGs (assets.tryhackme.com/img/badges/<slug>.png), downscaled into
+# scripts/build/art/thm/ by scripts.build.thm_art. Note: "burpsuite" is the Burp'ed
+# badge; "burped.png" is a different (wizard) image. "Intro to Web Hacking" is still
+# missing its image; add it here as one more line once the owner sends it.
+THM_BADGES: list[tuple[str, str]] = [
+    ("introtooffensivesecurity", "Pentesting Principles"),
+    ("streak7", "7 Day Streak"),
+    ("ohsint", "OhSINT"),
+    ("linux", "cat linux.txt"),
+    ("metasploit", "Metasploitable"),
+    ("ice", "Ice"),
+    ("hashcracker", "Hash Cracker"),
+    ("blue", "Blue"),
+    ("adventofcyber", "Advent of Cyber 3"),
+    ("burpsuite", "Burp'ed"),
+]
+THM_PROFILE = "https://tryhackme.com/p/sky9262"
+THM_SHELF: dict[str, T] = {
+    "title": T("TryHackMe バッジ", "TryHackMe badges"),
+    "stats": T("上位5% · 最長連続 253日", "Top 5% · longest streak 253 days"),
+}
+
 # ---------------------------------------------------------------- connect
 # (id, label, url), in spec table order
 LINKS: list[tuple[str, str, str]] = [

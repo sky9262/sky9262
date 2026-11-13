@@ -126,7 +126,7 @@ def test_no_pending_plaques():
 def test_structure():
     for lang in FILES:
         text = _read(lang)
-        assert text.count('media="(max-width: 600px)"') == 6  # hero, can-do, stack, torii, feed, connect
+        assert text.count('media="(max-width: 600px)"') == 7  # hero, can-do, stack, torii, feed, THM shelf, connect
     assert len(re.findall(r"<picture>", _read("jp"))) == len(
         re.findall(r"<picture>", _read("en"))
     )
@@ -207,7 +207,7 @@ def test_owner_urls_once(lang):
         assert text.count(f'"{u}"') == 1, (lang, u, text.count(f'"{u}"'))
     for u in ("https://tryhackme.com/p/sky9262", "https://solved.ac/sky9262"):
         assert text.count(f'href="{u}"') >= 1
-    assert text.count('href="https://tryhackme.com/p/sky9262"') == 2  # THM badge + link button
+    assert text.count('href="https://tryhackme.com/p/sky9262"') == 3  # THM badge, badge shelf, link button
     assert "api/mini/generate_badge" not in text  # owner removed the small solved.ac badge
 
 
@@ -369,9 +369,29 @@ def test_achievements_section_order(lang):
         text.index(f"assets/{lang}/picoctf.svg"),
         text.index(f"assets/{lang}/ctftime.svg"),
         text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0"),
+        text.index(f"assets/{lang}/thm-shelf-desktop.svg"),
         text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262"),
         text.index(CREDLY[0][1]),
         text.index(CREDLY[1][1]),
         text.index("connect-desktop.svg"),
     ]
     assert marks == sorted(marks)
+
+
+# ---- owner edit 9: TryHackMe badge shelf after the THM badge ----
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_thm_shelf_placement(lang):
+    text = _read(lang)
+    thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
+    shelf = text.index(f"assets/{lang}/thm-shelf-desktop.svg")
+    solved = text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262")
+    assert thm < shelf < solved
+    m = re.search(
+        rf'<p align="center">\n<a href="https://tryhackme.com/p/sky9262"><picture><source media="\(max-width: 600px\)" '
+        rf'srcset="assets/{lang}/thm-shelf-phone.svg"><img src="assets/{lang}/thm-shelf-desktop.svg" width="100%" '
+        rf'alt="([^"]+)"></picture></a>\n</p>', text)
+    assert m
+    if lang == "jp":
+        assert JP_CHARS.search(m.group(1))
+    else:
+        assert m.group(1).isascii()

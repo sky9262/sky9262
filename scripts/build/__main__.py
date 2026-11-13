@@ -19,6 +19,7 @@ from scripts.shrine.cards.divider import render_divider
 from scripts.shrine.cards.hero import render_hero
 from scripts.shrine.cards.plaque import render_plaque
 from scripts.shrine.cards.stack import render_stack
+from scripts.shrine.cards.thm_shelf import render_thm_shelf
 from scripts.shrine.fonts import FONT_DIR
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -63,6 +64,7 @@ def build(output_branch: str) -> None:
     build_runtime_fonts(FONT_DIR, runtime_text(), serif_dir=serif, mono_dir=mono)
     fonts = SubsetFonts(serif, mono)
     assets = ROOT / "assets"
+    thm_images = {slug: (ART / "thm" / f"{slug}.png").read_bytes() for slug, _name in content.THM_BADGES}
     for lang in LANGS:
         d = assets / lang
         for layout in LAYOUTS:
@@ -72,6 +74,7 @@ def build(output_branch: str) -> None:
             _write(d / f"cando-{layout}.svg", render_cando(lang, layout, fonts))
             _write(d / f"stack-{layout}.svg", render_stack(lang, layout, fonts))
             _write(d / f"connect-{layout}.svg", render_connect(lang, layout, fonts))
+            _write(d / f"thm-shelf-{layout}.svg", render_thm_shelf(lang, layout, fonts, thm_images))
         for i, p in enumerate(content.active_plaques()):
             if p.id != LIVE_PLAQUE:
                 _write(d / f"plaque-{p.id}.svg", render_plaque(p, lang, i, fonts))

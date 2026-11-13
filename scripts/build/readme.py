@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from scripts.shrine.content import (
-    ACHIEVEMENTS, CTFTIME, HACKERRANK, HACKERRANK_URL, LINKS, PICOCTF, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
+    ACHIEVEMENTS, CTFTIME, HACKERRANK, HACKERRANK_URL, LINKS, PICOCTF, THM_BADGES, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
 )
 
 RAW = "https://raw.githubusercontent.com/sky9262/sky9262"
@@ -82,6 +82,12 @@ def _ctftime_alt(lang: str) -> str:
 
 # the CTFtime team tablet: centred alone in its own row after the pair
 CTFTIME_TABLET = (CTFTIME["url"], "ctftime", {lang: _ctftime_alt(lang) for lang in ("jp", "en")})
+
+
+THM_SHELF_ALT = {
+    "jp": "TryHackMeで獲得したバッジ（上位5%・最長連続253日）: " + "、".join(n for _, n in THM_BADGES),
+    "en": "TryHackMe badges (top 5 percent, longest streak 253 days): " + ", ".join(n for _, n in THM_BADGES),
+}
 
 
 def tablet_rows(tablets: list[tuple[str, str, dict[str, str]]], lang: str) -> list[str]:
@@ -230,6 +236,8 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     blocks += tablet_rows([CTFTIME_TABLET], lang)
     blocks.append(_centered(
         f'<a href="{THM_URL}"><img src="{THM_IMG}" alt="{OWNER_ALT["thm"][lang]}"></a>'))
+    blocks.append(_centered(
+        f'<a href="{THM_URL}">{_picture("thm-shelf", THM_SHELF_ALT[lang], lang)}</a>'))
     blocks.append(_centered(
         f'<a href="{SOLVED_URL}"><img src="{SOLVED_CARD}" alt="{OWNER_ALT["solved"][lang]}"></a>'))
     blocks.append(_centered("\n".join(

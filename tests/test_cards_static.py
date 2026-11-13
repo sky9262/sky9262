@@ -856,3 +856,83 @@ def test_ctftime_caption_labels_whole_climb(fonts, lang):
     bottom = float(rect.group(1)) + float(rect.group(2))
     label_ys = [float(y) for y in re.findall(r'<text class="ctf[AB]" x="[\d.]+" y="([\d.]+)"[^>]*>#\d+</text>', svg)]
     assert label_ys and bottom <= min(label_ys) - 14 * 0.72, (bottom, min(label_ys))
+
+
+# ---------------------------------------------------------------- TryHackMe badge shelf (owner edit 9)
+
+from pathlib import Path  # noqa: E402
+
+from scripts.shrine.content import THM_BADGES, THM_SHELF  # noqa: E402
+
+THM_ART = Path(__file__).resolve().parent.parent / "scripts" / "build" / "art" / "thm"
+SHELF_W = {"desktop": 1200, "phone": 600}
+
+
+def _thm_images(badges=THM_BADGES) -> dict:
+    return {slug: (THM_ART / f"{slug}.png").read_bytes() for slug, _ in badges}
+
+
+def test_thm_badges_data():
+    assert [s for s, _ in THM_BADGES] == [
+        "introtooffensivesecurity", "streak7", "ohsint", "linux", "metasploit",
+        "ice", "hashcracker", "blue", "adventofcyber", "burpsuite",
+    ]
+    assert dict(THM_BADGES)["burpsuite"] == "Burp'ed"
+    for slug, _ in THM_BADGES:
+        data = (THM_ART / f"{slug}.png").read_bytes()
+        assert data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) < 12 * 1024, slug
+
+
+@pytest.mark.parametrize("lang,layout", CASES, ids=IDS)
+def test_thm_shelf(fonts, lang, layout):
+    from scripts.shrine.cards.thm_shelf import name_lines, render_thm_shelf
+
+    svg = render_thm_shelf(lang, layout, fonts, _thm_images())
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, WIDTH[layout])
+    assert min(s for s, deco in font_sizes(svg) if not deco) >= MIN_UNITS[layout]
+    assert re.search(rf'viewBox="0 0 {SHELF_W[layout]} \d+"', svg)
+    seen = visible_strings(svg)
+    joined = " ".join(seen.split())
+    assert THM_SHELF["title"](lang) in seen and THM_SHELF["stats"](lang) in seen
+    for _slug, name in THM_BADGES:
+        lines = name_lines(name, layout)  # wrapped, never truncated
+        assert " ".join(lines) == name and 1 <= len(lines) <= 2
+        assert all(line in seen for line in lines), name
+    assert "Burp'ed" in joined
+    assert svg.count("data:image/png;base64,") == len(THM_BADGES)
+    assert "@keyframes" in svg and "@font-face" in svg
+    for e in EMOJI:
+        assert e not in svg
+
+
+@pytest.mark.parametrize("layout", ["desktop", "phone"])
+def test_thm_shelf_fits_eleven(fonts, layout):
+    """An 11th badge (Intro to Web Hacking, coming) fits: here a duplicate image stands in."""
+    from scripts.shrine.cards.thm_shelf import plan, render_thm_shelf
+
+    eleven = THM_BADGES + [("ice", "Intro to Web Hacking")]
+    svg = render_thm_shelf("en", layout, fonts, _thm_images(), badges=eleven)
+    assert_valid_svg(svg)
+    assert_under(svg, 500)
+    assert "Intro to Web Hacking" in " ".join(visible_strings(svg).split())
+    h, slots = plan(len(eleven), layout)
+    assert len(slots) == 11
+    rows = sorted({y for _, y in slots})
+    counts = [sum(1 for _, y in slots if y == r) for r in rows]
+    assert max(counts) - min(counts) <= 1 and counts == sorted(counts, reverse=True)
+    if layout == "desktop":
+        assert counts == [6, 5]
+    w = SHELF_W[layout]
+    from scripts.shrine.cards.thm_shelf import SLOT_W
+    for x, y in slots:
+        assert x - SLOT_W[layout] / 2 >= 0 and x + SLOT_W[layout] / 2 <= w and 0 < y < h
+
+
+def test_thm_shelf_missing_image(fonts):
+    from scripts.shrine.cards.thm_shelf import render_thm_shelf
+
+    with pytest.raises(KeyError):
+        render_thm_shelf("en", "desktop", fonts, {}, badges=[("nope", "Nope")])
