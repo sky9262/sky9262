@@ -86,6 +86,11 @@
 <a href="https://solved.ac/sky9262"><img src="http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262" alt="Solved.ac（sky9262）の実績"></a>
 </p>
 
+<p align="center">
+<a href="https://www.credly.com/badges/3f668e38-27f7-4ae8-9e03-c0a53ad18f14"><img src="https://images.credly.com/size/110x110/images/054913b2-e271-49a2-a1a4-9bf1c1f9a404/CyberEssentials.png" width="110" alt="Credlyバッジ: Cybersecurity Essentials（Cisco）"></a>
+<a href="https://www.credly.com/badges/ba32f9e8-a5a3-4d36-8261-be77a22b9337"><img src="https://images.credly.com/size/110x110/images/af8c6b4e-fc31-47c4-8dcb-eb7a2065dc5b/I2CS__1_.png" width="110" alt="Credlyバッジ: Introduction to Cybersecurity（Cisco）"></a>
+</p>
+
 <picture><source media="(max-width: 600px)" srcset="assets/jp/connect-phone.svg"><img src="assets/jp/connect-desktop.svg" width="100%" alt="ご縁: 連絡先"></picture>
 
 <p align="center">

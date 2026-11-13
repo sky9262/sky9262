@@ -119,6 +119,18 @@ OWNER_ALT = {
     "views": {"jp": "プロフィールの閲覧数", "en": "Profile views"},
     "bear": {"jp": "手を振るクマ", "en": "Waving bear"},
 }
+# Credly badges (official 110x110 images, linked). Owner: no issue dates anywhere,
+# so the alt text names the badge and issuer only.
+CREDLY: list[tuple[str, str, dict[str, str]]] = [
+    ("https://www.credly.com/badges/3f668e38-27f7-4ae8-9e03-c0a53ad18f14",
+     "https://images.credly.com/size/110x110/images/054913b2-e271-49a2-a1a4-9bf1c1f9a404/CyberEssentials.png",
+     {"jp": "Credlyバッジ: Cybersecurity Essentials（Cisco）",
+      "en": "Credly badge: Cybersecurity Essentials (Cisco)"}),
+    ("https://www.credly.com/badges/ba32f9e8-a5a3-4d36-8261-be77a22b9337",
+     "https://images.credly.com/size/110x110/images/af8c6b4e-fc31-47c4-8dcb-eb7a2065dc5b/I2CS__1_.png",
+     {"jp": "Credlyバッジ: Introduction to Cybersecurity（Cisco）",
+      "en": "Credly badge: Introduction to Cybersecurity (Cisco)"}),
+]
 MADE_WITH_LOVE = "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge"
 VIEWS = "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat"
 
@@ -220,6 +232,8 @@ def render_readme(lang: Lang, output_branch: str) -> str:
         f'<a href="{THM_URL}"><img src="{THM_IMG}" alt="{OWNER_ALT["thm"][lang]}"></a>'))
     blocks.append(_centered(
         f'<a href="{SOLVED_URL}"><img src="{SOLVED_CARD}" alt="{OWNER_ALT["solved"][lang]}"></a>'))
+    blocks.append(_centered("\n".join(
+        f'<a href="{url}">{_img(src, alt[lang], 110)}</a>' for url, src, alt in CREDLY)))
     # 7. connect
     blocks.append(_picture("connect", ALT["connect"][lang], lang))
     blocks.append(_centered(

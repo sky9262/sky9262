@@ -234,7 +234,8 @@ def test_owner_achievement_badges(lang):
     ctftime = text.index(f"assets/{lang}/ctftime.svg")
     thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
     card = text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262")
-    assert last_tablet < pair < ctftime < thm < card < text.index("connect-desktop.svg")
+    credly = text.index("https://www.credly.com/badges/")
+    assert last_tablet < pair < ctftime < thm < card < credly < text.index("connect-desktop.svg")
 
 
 @pytest.mark.parametrize("lang", ["jp", "en"])
@@ -315,3 +316,62 @@ def test_ctftime_tablet_row(lang):
     assert text.index("picoctf.svg") < pos
     alt = re.search(re.escape(img) + r'([^"]+)"', text).group(1)
     assert "warlock_rootx" in alt
+
+
+# ---- owner edit 8: Credly row (official images), no dates anywhere ----
+CREDLY = [
+    ("https://www.credly.com/badges/3f668e38-27f7-4ae8-9e03-c0a53ad18f14",
+     "https://images.credly.com/size/110x110/images/054913b2-e271-49a2-a1a4-9bf1c1f9a404/CyberEssentials.png",
+     "Cybersecurity Essentials"),
+    ("https://www.credly.com/badges/ba32f9e8-a5a3-4d36-8261-be77a22b9337",
+     "https://images.credly.com/size/110x110/images/af8c6b4e-fc31-47c4-8dcb-eb7a2065dc5b/I2CS__1_.png",
+     "Introduction to Cybersecurity"),
+]
+DATE = re.compile(
+    r"\b(19|20)\d\d\b|\d+\s*年|\d+\s*月|\d+\s*日|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\b"
+    r"|\bissued\b|発行|取得日|\d{1,4}[/.-]\d{1,2}[/.-]\d{1,4}",
+    re.I,
+)
+
+
+def _credly_row(text: str) -> str:
+    first = text.index(CREDLY[0][1])
+    return text[text.rindex("<p", 0, first):text.index("</p>", first) + 4]
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_credly_row(lang):
+    text = _read(lang)
+    row = _credly_row(text)
+    assert row.startswith('<p align="center">')
+    for href, src, name in CREDLY:
+        m = re.search(rf'<a href="{re.escape(href)}"><img src="{re.escape(src)}" width="110" alt="([^"]+)"></a>', row)
+        assert m, name
+        alt = m.group(1)
+        assert name in alt and "Cisco" in alt
+        if lang == "jp":
+            assert JP_CHARS.search(alt)
+        else:
+            assert alt.isascii()
+        assert text.count(f'"{href}"') == 1 and text.count(f'"{src}"') == 1
+    # no issue dates anywhere in the row: strip the URL values, then look for years/dates
+    visible = re.sub(r'(href|src)="[^"]*"', "", row)
+    assert not DATE.search(visible), DATE.search(visible)
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_achievements_section_order(lang):
+    """6 tablets, [HackerRank | picoCTF], [CTFtime], THM, solved.ac, Credly, then Connect."""
+    text = _read(lang)
+    marks = [
+        text.rindex("achievement-"),
+        text.index(f"assets/{lang}/hackerrank.svg"),
+        text.index(f"assets/{lang}/picoctf.svg"),
+        text.index(f"assets/{lang}/ctftime.svg"),
+        text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0"),
+        text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262"),
+        text.index(CREDLY[0][1]),
+        text.index(CREDLY[1][1]),
+        text.index("connect-desktop.svg"),
+    ]
+    assert marks == sorted(marks)
