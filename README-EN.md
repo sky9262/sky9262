@@ -1,4 +1,4 @@
-<p align="right"><a href="https://github.com/sky9262/sky9262/blob/profile-v2/README.md"><img src="assets/en/toggle.svg" width="140" alt="Switch to Japanese"></a></p>
+<p align="right"><a href="https://github.com/sky9262/sky9262/blob/main/README.md"><img src="assets/en/toggle.svg" width="140" alt="Switch to Japanese"></a></p>
 
 <picture><source media="(max-width: 600px)" srcset="assets/en/hero-phone.svg"><img src="assets/en/hero-desktop.svg" width="100%" alt="Akash Kumar, AI and Security Engineer: night shrine profile banner"></picture>
 
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/sky9262/phishEye"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/plaque-phisheye.svg" width="410" alt="Project plaque: phishEye"></a>
+<a href="https://github.com/sky9262/phishEye"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/plaque-phisheye.svg" width="410" alt="Project plaque: phishEye"></a>
 <a href="https://huggingface.co/sky9262/whisper-base-japanese-anime"><img src="assets/en/plaque-whisper.svg" width="410" alt="Project plaque: Whisper JP-Anime ASR"></a>
 </p>
 
@@ -33,23 +33,23 @@
 
 <h2 align="center">Activity · 千本鳥居</h2>
 
-<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/torii-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/torii-desktop.svg" width="100%" alt="Torii gate path into my activity"></picture>
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output/en/torii-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/torii-desktop.svg" width="100%" alt="Torii gate path into my activity"></picture>
 
-<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/feed-desktop.svg" width="100%" alt="This week: contributions on each of the last 7 days"></picture>
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output/en/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/feed-desktop.svg" width="100%" alt="This week: contributions on each of the last 7 days"></picture>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-contrib.svg" width="410" alt="Contributions in the last year">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-month.svg" width="410" alt="Contributions in the last 30 days">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/stat-contrib.svg" width="410" alt="Contributions in the last year">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/stat-month.svg" width="410" alt="Contributions in the last 30 days">
 </p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-peak.svg" width="410" alt="Busiest day of the year">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/stat-stars.svg" width="410" alt="Stars earned">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/stat-peak.svg" width="410" alt="Busiest day of the year">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/stat-stars.svg" width="410" alt="Stars earned">
 </p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/enso.svg" width="410" alt="Enso chart of top languages">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/en/hours.svg" width="410" alt="Commits by hour of day">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/enso.svg" width="410" alt="Enso chart of top languages">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/en/hours.svg" width="410" alt="Commits by hour of day">
 </p>
 
 <h3 align="center">Achievements · Charms</h3>

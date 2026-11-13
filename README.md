@@ -1,4 +1,4 @@
-<p align="right"><a href="https://github.com/sky9262/sky9262/blob/profile-v2/README-EN.md"><img src="assets/jp/toggle.svg" width="140" alt="English版を開く"></a></p>
+<p align="right"><a href="https://github.com/sky9262/sky9262/blob/main/README-EN.md"><img src="assets/jp/toggle.svg" width="140" alt="English版を開く"></a></p>
 
 <picture><source media="(max-width: 600px)" srcset="assets/jp/hero-phone.svg"><img src="assets/jp/hero-desktop.svg" width="100%" alt="夜の神社 アカシュ・クマァ（Akash Kumar）のプロフィール"></picture>
 
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/sky9262/phishEye"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/plaque-phisheye.svg" width="410" alt="絵馬: フィッシング対策訓練ツール"></a>
+<a href="https://github.com/sky9262/phishEye"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/plaque-phisheye.svg" width="410" alt="絵馬: フィッシング対策訓練ツール"></a>
 <a href="https://huggingface.co/sky9262/whisper-base-japanese-anime"><img src="assets/jp/plaque-whisper.svg" width="410" alt="絵馬: アニメ音声文字起こしモデル"></a>
 </p>
 
@@ -33,23 +33,23 @@
 
 <h2 align="center">千本鳥居 · 活動</h2>
 
-<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/torii-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/torii-desktop.svg" width="100%" alt="千本鳥居: 活動の入り口"></picture>
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/torii-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/torii-desktop.svg" width="100%" alt="千本鳥居: 活動の入り口"></picture>
 
-<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/feed-desktop.svg" width="100%" alt="今週の参拝: 直近7日間の毎日の貢献数"></picture>
+<picture><source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/feed-phone.svg"><img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/feed-desktop.svg" width="100%" alt="今週の参拝: 直近7日間の毎日の貢献数"></picture>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-contrib.svg" width="410" alt="過去1年の貢献数">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-month.svg" width="410" alt="直近30日の貢献数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/stat-contrib.svg" width="410" alt="過去1年の貢献数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/stat-month.svg" width="410" alt="直近30日の貢献数">
 </p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-peak.svg" width="410" alt="最も貢献の多かった一日">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/stat-stars.svg" width="410" alt="獲得スター数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/stat-peak.svg" width="410" alt="最も貢献の多かった一日">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/stat-stars.svg" width="410" alt="獲得スター数">
 </p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/enso.svg" width="410" alt="円相: 使用言語の割合">
-<img src="https://raw.githubusercontent.com/sky9262/sky9262/output-test/jp/hours.svg" width="410" alt="時間帯別のコミット数">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/enso.svg" width="410" alt="円相: 使用言語の割合">
+<img src="https://raw.githubusercontent.com/sky9262/sky9262/output/jp/hours.svg" width="410" alt="時間帯別のコミット数">
 </p>
 
 <h3 align="center">御守り · 実績と認定</h3>
