@@ -230,9 +230,11 @@ def test_owner_connect_greeting(lang):
 def test_owner_achievement_badges(lang):
     text = _read(lang)
     last_tablet = text.rindex("achievement-")
+    pair = text.index(f"assets/{lang}/hackerrank.svg")
+    ctftime = text.index(f"assets/{lang}/ctftime.svg")
     thm = text.index("https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0")
     card = text.index("http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262")
-    assert last_tablet < thm < card < text.index("connect-desktop.svg")
+    assert last_tablet < pair < ctftime < thm < card < text.index("connect-desktop.svg")
 
 
 @pytest.mark.parametrize("lang", ["jp", "en"])
@@ -297,3 +299,19 @@ def test_picoctf_pairs_with_hackerrank(lang):
     assert f'<a href="https://picoctf.org"><img src="assets/{lang}/picoctf.svg" width="410" alt="' in para
     assert hr < pico
     assert text.count('href="https://picoctf.org"') == 1
+
+
+# ---- owner edit 7: CTFtime team tablet, alone in its row after the pair ----
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_ctftime_tablet_row(lang):
+    text = _read(lang)
+    url = "https://ctftime.org/team/75661"
+    img = f'<img src="assets/{lang}/ctftime.svg" width="410" alt="'
+    assert text.count(f'href="{url}"') == 1
+    assert f'<a href="{url}">{img}' in text
+    pos = text.index(img)
+    para = text[text.rindex("<p", 0, pos):text.index("</p>", pos)]
+    assert para.startswith('<p align="center">') and para.count("<img ") == 1
+    assert text.index("picoctf.svg") < pos
+    alt = re.search(re.escape(img) + r'([^"]+)"', text).group(1)
+    assert "warlock_rootx" in alt

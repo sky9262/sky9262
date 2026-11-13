@@ -307,6 +307,18 @@ PICOCTF: dict = {
     "sub": T("CTF演習スコア", "CTF score"),
 }
 
+# CTFtime team ranking, verified from the CTFtime API on 2026-11-13; refreshed by hand
+# (static). The owner wants the team named. years: (year, global place, points, India place).
+CTFTIME: dict = {
+    "team": "warlock_rootx",
+    "country": "IN",
+    "url": "https://ctftime.org/team/75661",
+    "years": [(2019, 110, 188.0, 5), (2020, 58, 309.7, 2), (2021, 39, 355.2, 3)],
+    "role": T("チームメンバー", "Team member"),
+    "world": T("世界{n}位", "World #{n}"),
+    "india": T("インド{n}位", "India #{n}"),
+}
+
 # ---------------------------------------------------------------- connect
 # (id, label, url), in spec table order
 LINKS: list[tuple[str, str, str]] = [

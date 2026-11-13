@@ -75,6 +75,10 @@
 </p>
 
 <p align="center">
+<a href="https://ctftime.org/team/75661"><img src="assets/jp/ctftime.svg" width="410" alt="CTFtimeチーム warlock_rootx のメンバー: 世界39位（2021年）、インド2位（2020年）"></a>
+</p>
+
+<p align="center">
 <a href="https://tryhackme.com/p/sky9262"><img src="https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0" alt="TryHackMe（sky9262）のバッジ"></a>
 </p>
 

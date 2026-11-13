@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from scripts.shrine.content import (
-    ACHIEVEMENTS, HACKERRANK, HACKERRANK_URL, LINKS, PICOCTF, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
+    ACHIEVEMENTS, CTFTIME, HACKERRANK, HACKERRANK_URL, LINKS, PICOCTF, SECTION, TOGGLE, CONNECT, Lang, active_plaques,
 )
 
 RAW = "https://raw.githubusercontent.com/sky9262/sky9262"
@@ -67,6 +67,21 @@ EXTRA_TABLETS: list[tuple[str, str, dict[str, str]]] = [
         "en": f"picoCTF ({PICOCTF['user']}): CTF score {PICOCTF['score']} points",
     }),
 ]
+
+
+def _ctftime_alt(lang: str) -> str:
+    years = CTFTIME["years"]
+    world = min(years, key=lambda r: r[1])
+    india = min(years, key=lambda r: r[3])
+    if lang == "jp":
+        return (f"CTFtimeチーム {CTFTIME['team']} のメンバー: 世界{world[1]}位（{world[0]}年）、"
+                f"インド{india[3]}位（{india[0]}年）")
+    return (f"CTFtime team {CTFTIME['team']} (member): World #{world[1]} ({world[0]}), "
+            f"India #{india[3]} ({india[0]})")
+
+
+# the CTFtime team tablet: centred alone in its own row after the pair
+CTFTIME_TABLET = (CTFTIME["url"], "ctftime", {lang: _ctftime_alt(lang) for lang in ("jp", "en")})
 
 
 def tablet_rows(tablets: list[tuple[str, str, dict[str, str]]], lang: str) -> list[str]:
@@ -200,6 +215,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     ]
     blocks += _pairs(ach)
     blocks += tablet_rows(EXTRA_TABLETS, lang)
+    blocks += tablet_rows([CTFTIME_TABLET], lang)
     blocks.append(_centered(
         f'<a href="{THM_URL}"><img src="{THM_IMG}" alt="{OWNER_ALT["thm"][lang]}"></a>'))
     blocks.append(_centered(

@@ -783,3 +783,41 @@ def test_picoctf(fonts, lang):
     assert re.search(r'class="sway"', svg) and "@font-face" in svg
     for e in EMOJI + ("🚩",):
         assert e not in svg
+
+
+# ---------------------------------------------------------------- CTFtime team tablet (owner edit 7)
+
+from scripts.shrine.content import CTFTIME  # noqa: E402
+
+
+def test_ctftime_data():
+    assert CTFTIME["team"] == "warlock_rootx" and CTFTIME["country"] == "IN"
+    assert CTFTIME["url"] == "https://ctftime.org/team/75661"
+    assert CTFTIME["years"] == [(2019, 110, 188.0, 5), (2020, 58, 309.7, 2), (2021, 39, 355.2, 3)]
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_ctftime(fonts, lang):
+    from scripts.shrine.cards.achievement import render_ctftime
+
+    svg = render_ctftime(lang, fonts)
+    assert_valid_svg(svg)
+    assert_no_external(svg)
+    assert_under(svg, 500)
+    assert_min_text(svg, 360)
+    assert 'viewBox="0 0 410 200"' in svg
+    seen = visible_strings(svg)
+    assert CTFTIME["role"](lang) in seen and "warlock_rootx" in seen
+    assert CTFTIME["world"](lang).format(n=39) in seen  # best global place, 2021
+    assert CTFTIME["india"](lang).format(n=2) in seen  # best India place, 2020
+    for year, place, _pts, _in in CTFTIME["years"]:
+        assert str(year) in seen
+        assert f"#{place}" in seen
+    # the climb: one step per year, rising as the place improves
+    steps = re.findall(r'class="step" data-year="(\d+)" data-place="(\d+)" data-h="([\d.]+)"', svg)
+    assert [int(y) for y, _, _ in steps] == [2019, 2020, 2021]
+    hs = [float(h) for _, _, h in steps]
+    assert hs == sorted(hs) and len(set(hs)) == 3
+    assert re.search(r'class="sway"', svg) and "@font-face" in svg
+    for e in EMOJI + ("🇮🇳", "🏁"):
+        assert e not in svg

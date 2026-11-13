@@ -75,6 +75,10 @@
 </p>
 
 <p align="center">
+<a href="https://ctftime.org/team/75661"><img src="assets/en/ctftime.svg" width="410" alt="CTFtime team warlock_rootx (member): World #39 (2021), India #2 (2020)"></a>
+</p>
+
+<p align="center">
 <a href="https://tryhackme.com/p/sky9262"><img src="https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0" alt="TryHackMe - sky9262"></a>
 </p>
 

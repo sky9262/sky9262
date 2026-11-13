@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import math
 
-from ..content import ACHIEVEMENTS, HACKERRANK, HACKERRANK_TEXT, PICOCTF, Lang
+from ..content import ACHIEVEMENTS, CTFTIME, HACKERRANK, HACKERRANK_TEXT, PICOCTF, Lang
 from ..icons import BRAND, GLYPH, icon
 from ..metrics import text_width, wrap
 from ..palette import PALETTE as P
@@ -653,3 +653,113 @@ def render_picoctf(lang: Lang, fonts) -> str:
     i = len(ACHIEVEMENTS) + 1
     title = f"{PICOCTF['title'](lang)} · {PICOCTF['sub'](lang)} · {PICOCTF['score']} pts · {PICOCTF['user']}"
     return _card(i, -3.8, _pico_tablet(lang, i), title, PICO_ACCENT, fonts)
+
+
+# ---------------------------------------------------------------- CTFtime team (owner edit 7)
+#
+# Header: a small red pennant, the role and the team name. A lacquered panel holds the
+# headline places (best global place and best India place, each with its year) and a
+# three-step climb: one torii per year, taller as the global place improves, with the
+# place above and the year below, lit one after another.
+
+CTF_PANEL = (30, 96, 380, 176)
+CTF_SPLIT = 206  # headline | climb
+CTF_HEAD = 21
+CTF_GROUND = 150
+CTF_YEAR_Y = 167
+TORII_VIS = (22 - 5.2) / 24  # visible height of GLYPH['torii'] per unit of icon size
+CTF_STEP_X = (240, 292, 344)
+CTF_CSS = (
+    ".lit{animation:lit .7s ease-out both}"
+    "@keyframes lit{from{opacity:.15}to{opacity:1}}"
+)
+
+
+def _ctf_heights() -> list[float]:
+    """Visible torii height per year: 14 for the worst place, 30 for the best, linear in between."""
+    places = [p for _, p, _, _ in CTFTIME["years"]]
+    lo, hi = min(places), max(places)
+    return [round(14 + 16 * (hi - p) / (hi - lo), 1) if hi != lo else 22 for p in places]
+
+
+def _pennant(x: float, y: float) -> str:
+    return (
+        f'<g transform="translate({_g(x)},{_g(y)})">'
+        f'<rect x="-1" y="-10" width="2" height="20" rx="1" fill="{P["ink-a"]}"/>'
+        f'<path d="M1,-10 L15,-5.5 L1,-1 Z" fill="{P["vermilion"]}" stroke="{P["ink-a"]}" stroke-opacity="0.5" stroke-width="0.6"/></g>'
+    )
+
+
+def _ctf_tablet(lang: Lang, i: int) -> str:
+    role, team = CTFTIME["role"](lang), CTFTIME["team"]
+    years = CTFTIME["years"]
+    best_world = min(years, key=lambda r: r[1])
+    best_india = min(years, key=lambda r: r[3])
+    # header, centred: pennant, role, diamond, team
+    rw = text_width(role, 15, weight=700, letter_spacing=0.5)
+    tw = text_width(team, 20, weight=700)
+    total = 22 + rw + 22 + tw
+    x = CX - total / 2
+    head = (
+        _pennant(x + 2, 80)
+        + f'<g filter="url(#carve)"><text x="{_g(x + 22)}" y="86" {SERIF} font-size="15" font-weight="700" fill="{P["ink-red"]}" '
+        f'letter-spacing="0.5">{esc(role)}</text>'
+        f'<path d="M{_g(x + 22 + rw + 7)},80 l4,-4 l4,4 l-4,4 z" fill="{P["ink-red"]}"/>'
+        f'<text x="{_g(x + 22 + rw + 22)}" y="86" {SERIF} font-size="20" font-weight="700" fill="{P["ink-a"]}">{esc(team)}</text></g>'
+    )
+    x0, y0, x1, y1 = CTF_PANEL
+    panel = (
+        f'<rect x="{x0 - 2}" y="{y0 - 2}" width="{x1 - x0 + 4}" height="{y1 - y0 + 4}" rx="10" fill="{P["ink-a"]}" opacity="0.35"/>'
+        f'<rect x="{x0}" y="{y0}" width="{x1 - x0}" height="{y1 - y0}" rx="8" fill="url(#panelG)" '
+        f'stroke="{P["lantern-gold"]}" stroke-opacity="0.8" stroke-width="1.6"/>'
+        f'<rect x="{x0 + 4}" y="{y0 + 4}" width="{x1 - x0 - 8}" height="{y1 - y0 - 8}" rx="5" fill="none" '
+        f'stroke="{P["lantern-gold"]}" stroke-opacity="0.25" stroke-width="0.8"/>'
+        f'<rect x="{x0 + 1}" y="{y0 + 1}" width="{x1 - x0 - 2}" height="{_g((y1 - y0) / 2)}" rx="7" fill="url(#gloss)"/>'
+        f'<rect x="{CTF_SPLIT - 0.5}" y="{y0 + 10}" width="1" height="{y1 - y0 - 20}" fill="{P["lantern-gold"]}" opacity="0.25"/>'
+    )
+    # headline: two places, each with its year
+    lines = []
+    for k, (label, (year, *_), colour) in enumerate((
+        (CTFTIME["world"](lang).format(n=best_world[1]), best_world, P["lantern-gold"]),
+        (CTFTIME["india"](lang).format(n=best_india[3]), best_india, P["moon-a"]),
+    )):
+        y = 127 + k * 31
+        lw = text_width(label, CTF_HEAD, weight=700)
+        if x0 + 14 + lw + 8 + text_width(str(year), 14) > CTF_SPLIT - 6:
+            raise ValueError(f"CTFtime headline ({lang}) does not fit: {label}")
+        lines.append(
+            f'<text x="{x0 + 14}" y="{y}" {SERIF} font-size="{CTF_HEAD}" font-weight="700" fill="{colour}">{esc(label)}</text>'
+            f'<text x="{_g(x0 + 14 + lw + 8)}" y="{y}" {SERIF} font-size="14" fill="{P["text-soft-b"]}">{year}</text>'
+        )
+    # the climb
+    hs = _ctf_heights()
+    steps = []
+    for k, ((year, place, _pts, _in), h, sx) in enumerate(zip(years, hs, CTF_STEP_X)):
+        best = place == best_world[1]
+        colour = P["vermilion"] if best else "#b8402c"
+        size = h / TORII_VIS
+        top = CTF_GROUND - h
+        steps.append(
+            f'<g class="step" data-year="{year}" data-place="{place}" data-h="{h:g}">'
+            f'<g class="lit" style="animation-delay:{0.35 * k + 0.2:g}s">'
+            + (f'<ellipse cx="{sx}" cy="{_g(top + h / 2)}" rx="20" ry="{_g(h * 0.7)}" fill="url(#lanternGlow)" opacity="0.45" class="lglow"/>' if best else "")
+            + icon("torii", sx - size / 2, CTF_GROUND - size * 22 / 24, size, colour)
+            + f'<text x="{sx}" y="{_g(top - 5)}" text-anchor="middle" {SERIF} font-size="14" font-weight="700" '
+            f'fill="{P["lantern-gold"] if best else P["text-soft-a"]}">#{place}</text></g>'
+            f'<text x="{sx}" y="{CTF_YEAR_Y}" text-anchor="middle" {SERIF} font-size="14" fill="{P["text-soft-b"]}">{year}</text>'
+            "</g>"
+        )
+    climb = (
+        f'<path d="M{CTF_SPLIT + 14},{CTF_GROUND} H{x1 - 12}" stroke="{P["text-soft-b"]}" stroke-opacity="0.5" stroke-width="1"/>'
+        + "".join(steps)
+    )
+    return _hanging(i) + head + panel + "".join(lines) + climb
+
+
+def render_ctftime(lang: Lang, fonts) -> str:
+    """CTFtime team places (content.CTFTIME) on a tablet of the achievements family, 410x200."""
+    i = len(ACHIEVEMENTS) + 2
+    years = CTFTIME["years"]
+    summary = ", ".join(f"{y}: #{p}" for y, p, _, _ in years)
+    title = f"{CTFTIME['role'](lang)} · {CTFTIME['team']} · CTFtime {summary}"
+    return _card(i, -1.7, _ctf_tablet(lang, i), title, P["vermilion"], fonts, css=CTF_CSS, defs=_hr_defs())
