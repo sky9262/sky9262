@@ -69,7 +69,33 @@
 <img src="assets/en/achievement-jlpt.svg" width="410" alt="JLPT N3, passed 2024">
 </p>
 
+<p align="center">
+<a href="https://tryhackme.com/p/sky9262"><img src="https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0" alt="TryHackMe - sky9262"></a>
+</p>
+
+<p align="center">
+<a href="https://solved.ac/sky9262"><img src="http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262" alt="Solved.ac - sky9262"></a>
+</p>
+
+<p align="center">
+<a href="https://solved.ac/sky9262"><img src="http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262" alt="Solved.ac - sky9262"></a>
+</p>
+
 <picture><source media="(max-width: 600px)" srcset="assets/en/connect-phone.svg"><img src="assets/en/connect-desktop.svg" width="100%" alt="Connect with me"></picture>
+
+<p align="center">
+<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60" alt="Waving bear">
+</p>
+
+<p align="center">
+<em>I love connecting with different people so if you want to say <b>hi</b>, I'll be happy to meet you more! <b>😊</b></em>
+</p>
+
+<p align="center">
+<a href="https://docs.github.com/en/developers"><img src="https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/devbadge.gif" width="40" height="40" alt="GitHub developer program"></a>
+<a href="https://github.com/pricing"><img src="https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/pro.gif" width="40" height="40" alt="GitHub Pro"></a>
+<a href="https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors"><img src="https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets/sponsorbadge.gif" width="40" height="40" alt="GitHub Sponsors"></a>
+</p>
 
 <p align="center">
 <a href="mailto:akash2002.pat@gmail.com"><img src="assets/common/btn-gmail.svg" alt="Gmail link"></a>
@@ -86,3 +112,8 @@
 </p>
 
 <p align="center"><sub>Thanks for visiting the shrine.</sub></p>
+
+<p align="center">
+<img src="https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge" alt="Made with love in India">
+<img src="https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat" alt="Profile views">
+</p>

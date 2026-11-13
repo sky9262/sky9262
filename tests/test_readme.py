@@ -170,3 +170,82 @@ def test_github_renders_picture():
     )
     assert r.returncode == 0, r.stderr
     assert 'media="(max-width: 600px)"' in r.stdout
+
+
+# ---- owner-kept v2.1 items: greeting, THM/solved.ac badges, footer badges ----
+def _amp(u: str) -> str:
+    return u.replace("&", "&amp;")
+
+
+BEAR_URL = "https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90"
+_ANIM_URL = "https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets"
+OWNER_URLS = [
+    "https://docs.github.com/en/developers",
+    f"{_ANIM_URL}/devbadge.gif",
+    "https://github.com/pricing",
+    f"{_ANIM_URL}/pro.gif",
+    "https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors",
+    f"{_ANIM_URL}/sponsorbadge.gif",
+    BEAR_URL,
+    "https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0",
+    "http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262",
+    "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262",
+    "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge",
+    "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat",
+]
+GREETING_LINE = {
+    "jp": "いろいろな方とつながるのが大好きです。気軽に<b>こんにちは</b>と声をかけてください。"
+          "お会いできるのを楽しみにしています！<b>😊</b>",
+    "en": "I love connecting with different people so if you want to say <b>hi</b>, "
+          "I'll be happy to meet you more! <b>😊</b>",
+}
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_urls_once(lang):
+    text = _read(lang)
+    for u in OWNER_URLS:
+        assert text.count(f'"{u}"') == 1, (lang, u, text.count(f'"{u}"'))
+    for u in ("https://tryhackme.com/p/sky9262", "https://solved.ac/sky9262"):
+        assert text.count(f'href="{u}"') >= 1
+    assert text.count('href="https://tryhackme.com/p/sky9262"') == 2  # THM badge + link button
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_connect_greeting(lang):
+    text = _read(lang)
+    card, first_btn = text.index("connect-desktop.svg"), text.index("btn-gmail.svg")
+    greeting = text.index(GREETING_LINE[lang])
+    assert f"<em>{GREETING_LINE[lang]}</em>" in text
+    bear = text.index(BEAR_URL)
+    badges = [text.index(u) for u in OWNER_URLS[:6:2]]
+    assert card < bear < greeting < min(badges)
+    assert max(badges) < first_btn
+    assert text.count('width="40" height="40"') == 3
+    other = "en" if lang == "jp" else "jp"
+    assert GREETING_LINE[other] not in text
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_achievement_badges(lang):
+    text = _read(lang)
+    last_tablet = text.rindex("achievement-")
+    order = [text.index(u) for u in OWNER_URLS[7:10]]
+    assert last_tablet < order[0] < order[1] < order[2]
+    assert order[2] < text.index("connect-desktop.svg")
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_footer(lang):
+    from scripts.shrine.content import CONNECT
+
+    text = _read(lang)
+    signoff = text.index(CONNECT["signoff"](lang))
+    assert signoff < text.index(OWNER_URLS[10]) < text.index(OWNER_URLS[11])
+
+
+@pytest.mark.parametrize("lang", ["jp", "en"])
+def test_owner_html_whitelist(lang):
+    tags = set(re.findall(r"</?([a-zA-Z0-9]+)", _read(lang)))
+    assert tags <= {"p", "a", "img", "em", "b", "picture", "source", "sub", "h2", "h3"}, tags
+    assert not re.search(r'<[^>]*\s(style|class)=', _read(lang))

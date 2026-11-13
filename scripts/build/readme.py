@@ -51,6 +51,38 @@ ACH_ALT_EN = {
     "jlpt": "JLPT N3, passed 2024",
 }
 
+BEAR = "https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90"
+GREETING = {
+    "jp": "<em>いろいろな方とつながるのが大好きです。気軽に<b>こんにちは</b>と声をかけてください。"
+          "お会いできるのを楽しみにしています！<b>😊</b></em>",
+    "en": "<em>I love connecting with different people so if you want to say <b>hi</b>, "
+          "I'll be happy to meet you more! <b>😊</b></em>",
+}
+_ANIM = "https://raw.githubusercontent.com/acervenky/animated-github-badges/master/assets"
+GH_BADGES = [
+    ("https://docs.github.com/en/developers", f"{_ANIM}/devbadge.gif",
+     {"jp": "GitHub開発者ドキュメント", "en": "GitHub developer program"}),
+    ("https://github.com/pricing", f"{_ANIM}/pro.gif",
+     {"jp": "GitHub Proの料金プラン", "en": "GitHub Pro"}),
+    ("https://docs.github.com/en/github/supporting-the-open-source-community-with-github-sponsors",
+     f"{_ANIM}/sponsorbadge.gif",
+     {"jp": "GitHubスポンサーの案内", "en": "GitHub Sponsors"}),
+]
+THM_URL = "https://tryhackme.com/p/sky9262"
+THM_IMG = "https://tryhackme-badges.s3.amazonaws.com/sky9262.png?0"
+SOLVED_URL = "https://solved.ac/sky9262"
+SOLVED_MINI = "http://mazassumnida.wtf/api/mini/generate_badge?boj=sky9262"
+SOLVED_CARD = "http://mazassumnida.wtf/api/v2/generate_badge?boj=sky9262"
+OWNER_ALT = {
+    "thm": {"jp": "TryHackMe（sky9262）のバッジ", "en": "TryHackMe - sky9262"},
+    "solved": {"jp": "Solved.ac（sky9262）の実績", "en": "Solved.ac - sky9262"},
+    "love": {"jp": "インドで愛を込めて作りました", "en": "Made with love in India"},
+    "views": {"jp": "プロフィールの閲覧数", "en": "Profile views"},
+    "bear": {"jp": "手を振るクマ", "en": "Waving bear"},
+}
+MADE_WITH_LOVE = "https://madewithlove.now.sh/in?heart=true&amp;template=for-the-badge"
+VIEWS = "https://komarev.com/ghpvc/?username=sky9262&amp;label=Profile%20views&amp;color=0e75b6&amp;style=flat"
+
 
 def _live(lang: str, branch: str, name: str) -> str:
     return f"{RAW}/{branch}/{lang}/{name}.svg"
@@ -143,8 +175,20 @@ def render_readme(lang: Lang, output_branch: str) -> str:
         for aid, t, d in ACHIEVEMENTS
     ]
     blocks += _pairs(ach)
+    blocks.append(_centered(
+        f'<a href="{THM_URL}"><img src="{THM_IMG}" alt="{OWNER_ALT["thm"][lang]}"></a>'))
+    blocks.append(_centered(
+        f'<a href="{SOLVED_URL}"><img src="{SOLVED_MINI}" alt="{OWNER_ALT["solved"][lang]}"></a>'))
+    blocks.append(_centered(
+        f'<a href="{SOLVED_URL}"><img src="{SOLVED_CARD}" alt="{OWNER_ALT["solved"][lang]}"></a>'))
     # 7. connect
     blocks.append(_picture("connect", ALT["connect"][lang], lang))
+    blocks.append(_centered(
+        f'<img src="{BEAR}" width="60" alt="{OWNER_ALT["bear"][lang]}">'))
+    blocks.append(_centered(GREETING[lang]))
+    blocks.append(_centered("\n".join(
+        f'<a href="{u}"><img src="{g}" width="40" height="40" alt="{a[lang]}"></a>'
+        for u, g, a in GH_BADGES)))
     buttons = [
         f'<a href="{url}"><img src="assets/common/btn-{lid}.svg" alt="{LINK_ALT[lang][lid]}"></a>'
         for lid, _label, url in LINKS
@@ -154,4 +198,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     blocks.append(_divider(lang))
     # 8. sign-off
     blocks.append(f'<p align="center"><sub>{CONNECT["signoff"](lang)}</sub></p>')
+    blocks.append(_centered(
+        f'<img src="{MADE_WITH_LOVE}" alt="{OWNER_ALT["love"][lang]}">\n'
+        f'<img src="{VIEWS}" alt="{OWNER_ALT["views"][lang]}">'))
     return "\n\n".join(blocks) + "\n"
