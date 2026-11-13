@@ -184,8 +184,7 @@ def render_readme(lang: Lang, output_branch: str) -> str:
     # 7. connect
     blocks.append(_picture("connect", ALT["connect"][lang], lang))
     blocks.append(_centered(
-        f'<img src="{BEAR}" width="60" alt="{OWNER_ALT["bear"][lang]}">'))
-    blocks.append(_centered(GREETING[lang]))
+        f'<img src="{BEAR}" width="60" alt="{OWNER_ALT["bear"][lang]}"> {GREETING[lang]}'))
     blocks.append(_centered("\n".join(
         f'<a href="{u}"><img src="{g}" width="40" height="40" alt="{a[lang]}"></a>'
         for u, g, a in GH_BADGES)))

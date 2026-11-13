@@ -84,11 +84,7 @@
 <picture><source media="(max-width: 600px)" srcset="assets/jp/connect-phone.svg"><img src="assets/jp/connect-desktop.svg" width="100%" alt="ご縁: 連絡先"></picture>
 
 <p align="center">
-<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60" alt="手を振るクマ">
-</p>
-
-<p align="center">
-<em>いろいろな方とつながるのが大好きです。気軽に<b>こんにちは</b>と声をかけてください。お会いできるのを楽しみにしています！<b>😊</b></em>
+<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60" alt="手を振るクマ"> <em>いろいろな方とつながるのが大好きです。気軽に<b>こんにちは</b>と声をかけてください。お会いできるのを楽しみにしています！<b>😊</b></em>
 </p>
 
 <p align="center">

@@ -84,11 +84,7 @@
 <picture><source media="(max-width: 600px)" srcset="assets/en/connect-phone.svg"><img src="assets/en/connect-desktop.svg" width="100%" alt="Connect with me"></picture>
 
 <p align="center">
-<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60" alt="Waving bear">
-</p>
-
-<p align="center">
-<em>I love connecting with different people so if you want to say <b>hi</b>, I'll be happy to meet you more! <b>😊</b></em>
+<img src="https://static.wikia.nocookie.net/571b16ac-136f-42f4-99eb-173a75d4aa90" width="60" alt="Waving bear"> <em>I love connecting with different people so if you want to say <b>hi</b>, I'll be happy to meet you more! <b>😊</b></em>
 </p>
 
 <p align="center">
